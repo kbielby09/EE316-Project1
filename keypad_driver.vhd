@@ -10,7 +10,7 @@
 -- Todos:
 --
 -- Done:
--- 1. Solve all CDL=>
+-- 1. Solve all
 -- 2. Add process descriptions
 -- 3. Ensure indentation and spacing is clean and consistent.
 --
@@ -54,7 +54,7 @@ port
   O_KEYPAD_BINARY : out std_logic_vector(3 downto 0);
 
   -- 6 bit binary representation of keypad state for RGB representation
-  O_KEYPAD_RGB_BINARY : out std_logic_vector(5 downto 0)
+  O_KEYPAD_RGB_BINARY : out std_logic_vector(8 downto 0)
 );
 end entity hex_keypad_driver;
 
@@ -95,7 +95,7 @@ architecture rtl of hex_keypad_driver is
   signal s_keypad_binary      : std_logic_vector(3 downto 0);
 
   -- 6 bit binary representation of keypad value used for RGB LEDs
-  signal s_keypad_RGB_binary  : std_logic_vector(5 downto 0);
+  signal s_keypad_RGB_binary  : std_logic_vector(8 downto 0);
 
 begin
   ------------------------------------------------------------------------------
@@ -144,7 +144,7 @@ begin
     if (I_SYSTEM_RST = '1') then  -- Upon reset, set the state to IDLE_STATE
       s_keypad_state          <= IDLE_STATE;
 
-    elsif (rising_edge(I_CLK_50MHZ)) then  -- CDL=> Why be explicit about clock
+    elsif (rising_edge(I_CLK_50MHZ)) then
       if (s_keypad_enable = '1') then
         case s_keypad_state is
           when IDLE_STATE =>
@@ -243,19 +243,19 @@ begin
         if    (I_KEYPAD_ROW_1 = '1') then
           -- TODO figure out s_keypad_binary usage
           s_keypad_binary <= "1010";
-          s_keypad_RGB_binary <= "000001";    -- row 1 column 1 keypad entry
+          s_keypad_RGB_binary <= "100001000";    -- row 1 column 1 keypad entry
         elsif (I_KEYPAD_ROW_2 = '1') then
           s_keypad_binary <= "0001";
-          s_keypad_RGB_binary <= "000101";    -- row 2 column 1 keypad entry
+          s_keypad_RGB_binary <= "010001000";    -- row 2 column 1 keypad entry
         elsif (I_KEYPAD_ROW_3 = '1') then
           s_keypad_binary <= "0100";
-          s_keypad_RGB_binary <= "001001";    -- row 3 column 1 keypad entry
+          s_keypad_RGB_binary <= "001001000";    -- row 3 column 1 keypad entry
         elsif (I_KEYPAD_ROW_4 = '1') then
           s_keypad_binary <= "0111";
-          s_keypad_RGB_binary <= "001101";    -- row 4 column 1 keypad entry
+          s_keypad_RGB_binary <= "000101000";    -- row 4 column 1 keypad entry
         elsif (I_KEYPAD_ROW_5 = '1') then
           s_keypad_binary <= "0000";
-          s_keypad_RGB_binary <= "001101";    -- row 4 column 1 keypad entry
+          s_keypad_RGB_binary <= "000011000";    -- row 5 column 1 keypad entry
         else
           s_keypad_binary <= s_keypad_binary;
         end if;
@@ -265,16 +265,16 @@ begin
         if    (I_KEYPAD_ROW_1 = '1') then
           -- TODO figure out s_keypad_binary usage
           s_keypad_binary <= "1011";
-          s_keypad_RGB_binary <= "000010";    -- row 1 column 2 keypad entry
+          s_keypad_RGB_binary <= "100000100";    -- row 1 column 2 keypad entry
         elsif (I_KEYPAD_ROW_2 = '1') then
           s_keypad_binary <= "0010";
-          s_keypad_RGB_binary <= "000110";    -- row 2 column 2 keypad entry
+          s_keypad_RGB_binary <= "010000100";    -- row 2 column 2 keypad entry
         elsif (I_KEYPAD_ROW_3 = '1') then
           s_keypad_binary <= "0101";
-          s_keypad_RGB_binary <= "001010";    -- row 3 column 2 keypad entry
+          s_keypad_RGB_binary <= "001000100";    -- row 3 column 2 keypad entry
         elsif (I_KEYPAD_ROW_4 = '1') then
           s_keypad_binary <= "1000";
-          s_keypad_RGB_binary <= "001110";    -- row 4 column 2 keypad entry
+          s_keypad_RGB_binary <= "000100100";    -- row 4 column 2 keypad entry
         else
           s_keypad_binary <= s_keypad_binary;
         end if;
@@ -284,19 +284,19 @@ begin
         if    (I_KEYPAD_ROW_1 = '1') then
           -- TODO figure out s_keypad_binary use
           s_keypad_binary <= "1100";
-          s_keypad_RGB_binary <= "000011";    -- row 1 column 3 keypad entry
+          s_keypad_RGB_binary <= "010000010";    -- row 1 column 3 keypad entry
         elsif (I_KEYPAD_ROW_2 = '1') then
           s_keypad_binary <= "0011";
-          s_keypad_RGB_binary <= "000111";    -- row 2 column 3 keypad entry
+          s_keypad_RGB_binary <= "010000010";    -- row 2 column 3 keypad entry
         elsif (I_KEYPAD_ROW_3 = '1') then
           s_keypad_binary <= "0110";
-          s_keypad_RGB_binary <= "001011";    -- row 3 column 3 keypad entry
+          s_keypad_RGB_binary <= "001000010";    -- row 3 column 3 keypad entry
         elsif (I_KEYPAD_ROW_4 = '1') then
           s_keypad_binary <= "1001";
-          s_keypad_RGB_binary <= "001111";    -- row 4 column 3 keypad entry
+          s_keypad_RGB_binary <= "000100010";    -- row 4 column 3 keypad entry
         elsif (I_KEYPAD_ROW_5 = '1') then
           h_key_pressed <= '1';
-          s_keypad_RGB_binary <= "001111";    -- row 4 column 3 keypad entry
+          s_keypad_RGB_binary <= "000100010";    -- row 4 column 3 keypad entry
         else
           s_keypad_binary <= s_keypad_binary;
         end if;
@@ -305,16 +305,19 @@ begin
       elsif (s_keypad_state = COL4_READ_STATE) then
         if    (I_KEYPAD_ROW_1 = '1') then
           s_keypad_binary <= "1101";
-          s_keypad_RGB_binary <= "000100";    -- row 1 column 4 keypad entry
+          s_keypad_RGB_binary <= "100000001";    -- row 1 column 4 keypad entry
         elsif (I_KEYPAD_ROW_2 = '1') then
           s_keypad_binary <= "1110";
-          s_keypad_RGB_binary <= "001000";    -- row 2 column 4 keypad entry
+          s_keypad_RGB_binary <= "010000001";    -- row 2 column 4 keypad entry
         elsif (I_KEYPAD_ROW_3 = '1') then
           s_keypad_binary <= "1111";
-          s_keypad_RGB_binary <= "001100";    -- row 3 column 4 keypad entry
+          s_keypad_RGB_binary <= "001000001";    -- row 3 column 4 keypad entry
         elsif (I_KEYPAD_ROW_4 = '1') then
           shift_key_pressed <= '1';
-          s_keypad_RGB_binary <= "010000";    -- row 4 column 4 keypad entry
+          s_keypad_RGB_binary <= "000100001";    -- row 4 column 4 keypad entry
+        elsif (I_KEYPAD_ROW_5 = '1') then
+          shift_key_pressed <= '1';
+          s_keypad_RGB_binary <= "000010001";    -- row 5 column 4 keypad entry
         else
           s_keypad_binary <= s_keypad_binary;
         end if;
