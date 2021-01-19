@@ -67,7 +67,7 @@ architecture rtl of SRAM_controller is
   -- contains address that data is written to
   signal input_data_addr : std_logic_vector(7 downto 0);
 
-  signal input_data      : std_logic_vector(16 downto 0);
+  signal input_data      : std_logic_vector(15 downto 0);
 
   -- counter for digit refresh
   signal digit_refresh_counter : unsigned(16 downto 0) := "00000000000000000";
@@ -97,15 +97,15 @@ begin
 
   end process INITIALIZE_SRAM;
 
-  WRITE_SRAM_DATA : process (I_CLK_50MHZ, WE, OE)
+  WRITE_SRAM_DATA : process (I_CLK_50MHZ, WE, OE, IN_DATA)
       begin
           if(WE = '0' and CE = '1') then
-
+              input_data <= IN_DATA;
           end if;
   end process WRITE_SRAM_DATA;
 
   OUT_DATA_ADR <= input_data_addr;
-  OUT_DATA     <= ;
+  OUT_DATA     <= input_data;
 
 
 
