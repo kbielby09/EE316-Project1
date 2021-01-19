@@ -31,10 +31,9 @@ port
 
   MEM_RESET      : in std_logic;                    -- Input signal to reset SRAM data form ROM
 
-  -- Write enable signals
-  WE    : in std_logic;
-
-  OE    : in std_logic;
+  -- Read/Write enable signals
+  WE    : in std_logic;     -- signal for writing to SRAM
+  OE    : in std_logic;     -- Input signal for enabling output
 
   -- digit selection input
   IN_DATA      : in std_logic_vector(15 downto 0);    -- gives the values of the digits to be illuminated
@@ -59,14 +58,16 @@ end SRAM_controller;
 --------------------------------
 --  Architecture Declaration  --
 --------------------------------
-architecture rtl of seven_seg_driver is
+architecture rtl of SRAM_controller is
 
   -------------
   -- SIGNALS --
   -------------
 
-  -- stores digit this is currently illuminated
-  signal current_digit     : REFRESHED_DIGIT;
+  -- contains address that data is written to
+  signal input_data_addr : std_logic_vector(7 downto 0);
+
+  signal input_data      : std_logic_vector(16 downto 0);
 
   -- counter for digit refresh
   signal digit_refresh_counter : unsigned(16 downto 0) := "00000000000000000";
@@ -96,6 +97,16 @@ begin
 
   end process INITIALIZE_SRAM;
 
+  WRITE_SRAM_DATA : process (I_CLK_50MHZ, WE, OE)
+      begin
+          if(WE = '0' and CE = '1') then
+
+          end if;
+  end process WRITE_SRAM_DATA;
+
+  OUT_DATA_ADR <= input_data_addr;
+  OUT_DATA     <= ;
+
 
 
 ------------------------------------------------------------------------------
@@ -107,17 +118,10 @@ begin
   --                    (active high enable logic)
   -- Description      : illuminates the desired segment and digit that is to be displayed
   ------------------------------------------------------------------------------
-  REFRESH_DIGITS : process (I_CLK_100MHZ, DIGIT_VALUES_IN)
-  begin
-
-
-  end process REFRESH_DIGITS;
   ------------------------------------------------------------------------------
 
 
 
   -- send signals to output ports
-  GND_CTRL_VEC <= digit_select;
-  SEG_SELECT   <= segment_select;
 
 end architecture rtl;

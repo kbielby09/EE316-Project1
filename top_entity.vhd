@@ -9,7 +9,7 @@ entity top_entity is
         BASE_CLK : in std_logic;
 
         -- Keypad input
-        
+
 
         -- SRAM inputs
 
@@ -37,3 +37,7 @@ architecture Behavior of top_entity is
        : out std_logic_vector();
        : out std_logic_vector()
       );
+  end component
+
+  component SRAM_controller is
+      port();
