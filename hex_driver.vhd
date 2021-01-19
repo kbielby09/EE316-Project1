@@ -31,15 +31,20 @@ port
   DIGIT_VALUES_IN    : in std_logic_vector(15 downto 0);    -- gives the values of the digits to be illuminated
                                                             -- bits 0-3: digit 1; bits 4-7: digit 2, bits 8-11: digit 3
                                                             -- bits 12-15: digit 4
+
   DATA_LOC_ADDR : in std_logic_vector(7 downto 0);  -- gives the values of the SRAM address that is to be displayed
-  
+
 
   -- seven segment display digit selection port
   GND_CTRL_VEC    : out std_logic_vector(3 downto 0);       -- if bit is 1 then digit is activated and if bit is 0 digit is inactive
                                                             -- bits 0-3: digit 1; bits 3-7: digit 2, bit 7: digit 4
 
+ -- hex display for data address
+ ADDR_DISP_HEX    : out std_logic_vector(13 downto 0);      -- segments that are to be illuminated for the seven segment hex
+                                                            -- digits that are being used to display the address
+
   -- seven segment display segment selection port
-  SEG_SELECT      : out std_logic_vector(6 downto 0)        -- if bit is 1 then segment is illuminated else if bit is 0 then segment is dim
+  DATA_DISP_HEX   : out std_logic_vector(27 downto 0)       -- if bit is 1 then segment is illuminated else if bit is 0 then segment is dim
                                                             -- bit 0: sement A, bit 1: segment B, bit 2: segment C, bit 3: segment D,
                                                             -- bit 4: segment E, bit 5: segment F, bit 6: segment G
   );
