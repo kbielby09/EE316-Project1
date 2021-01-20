@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- Filename     : hex_keypad_driver.vhd
--- Author       : 
+-- Author       :
 -- Date Created : 2019-02-26
 -- Last Revised : 2019-02-28
 -- Project      : lcd_keypad_dev
@@ -51,10 +51,8 @@ port
   L_KEY_OUT  : out std_logic;
 
   -- 4 bit binary representation of keypad state (output of entity)
-  O_KEYPAD_BINARY : out std_logic_vector(3 downto 0);
+  O_KEYPAD_BINARY : out std_logic_vector(3 downto 0)
 
-  -- 6 bit binary representation of keypad state for RGB representation
-  O_KEYPAD_RGB_BINARY : out std_logic_vector(8 downto 0)
 );
 end entity hex_keypad_driver;
 
@@ -93,9 +91,6 @@ architecture rtl of hex_keypad_driver is
 
   -- 4 bit binary representation of keypad state (output of entity)
   signal s_keypad_binary      : std_logic_vector(3 downto 0);
-
-  -- 6 bit binary representation of keypad value used for RGB LEDs
-  signal s_keypad_RGB_binary  : std_logic_vector(8 downto 0);
 
 begin
   ------------------------------------------------------------------------------
@@ -199,7 +194,6 @@ begin
       s_keypad_col_3      <= '0';
       s_keypad_col_4      <= '0';
       s_keypad_binary     <= (others => '0');
-      s_keypad_RGB_binary <= (others => '0');
 
     elsif ((rising_edge(I_CLK_50MHZ))) then
 
@@ -243,19 +237,14 @@ begin
         if    (I_KEYPAD_ROW_1 = '1') then
           -- TODO figure out s_keypad_binary usage
           s_keypad_binary <= "1010";             -- A key pressed
-          s_keypad_RGB_binary <= "100001000";    -- row 1 column 1 keypad entry
         elsif (I_KEYPAD_ROW_2 = '1') then
           s_keypad_binary <= "0001";             -- 1 key pressed
-          s_keypad_RGB_binary <= "010001000";    -- row 2 column 1 keypad entry
         elsif (I_KEYPAD_ROW_3 = '1') then
           s_keypad_binary <= "0100";             -- 4 key pressed
-          s_keypad_RGB_binary <= "001001000";    -- row 3 column 1 keypad entry
-        elsif (I_KEYPAD_ROW_4 = '1') then        
+        elsif (I_KEYPAD_ROW_4 = '1') then
           s_keypad_binary <= "0111";             -- 7 key pressed
-          s_keypad_RGB_binary <= "000101000";    -- row 4 column 1 keypad entry
         elsif (I_KEYPAD_ROW_5 = '1') then
           s_keypad_binary <= "0000";             -- 0 key pressed
-          s_keypad_RGB_binary <= "000011000";    -- row 5 column 1 keypad entry
         else
           s_keypad_binary <= s_keypad_binary;
         end if;
@@ -264,17 +253,13 @@ begin
       elsif (s_keypad_state = COL2_READ_STATE) then
         if    (I_KEYPAD_ROW_1 = '1') then
           -- TODO figure out s_keypad_binary usage
-          s_keypad_binary <= "1011";             -- B key pressed 
-          s_keypad_RGB_binary <= "100000100";    -- row 1 column 2 keypad entry
+          s_keypad_binary <= "1011";             -- B key pressed
         elsif (I_KEYPAD_ROW_2 = '1') then
           s_keypad_binary <= "0010";             -- 2 key pressed
-          s_keypad_RGB_binary <= "010000100";    -- row 2 column 2 keypad entry
         elsif (I_KEYPAD_ROW_3 = '1') then
           s_keypad_binary <= "0101";             -- 5 key pressed
-          s_keypad_RGB_binary <= "001000100";    -- row 3 column 2 keypad entry
         elsif (I_KEYPAD_ROW_4 = '1') then
           s_keypad_binary <= "1000";             -- 8 key pressed
-          s_keypad_RGB_binary <= "000100100";    -- row 4 column 2 keypad entry
         else
           s_keypad_binary <= s_keypad_binary;
         end if;
@@ -283,20 +268,15 @@ begin
       elsif (s_keypad_state = COL3_READ_STATE) then
         if    (I_KEYPAD_ROW_1 = '1') then
           -- TODO figure out s_keypad_binary use
-          s_keypad_binary <= "1100";             -- C key pressed 
-          s_keypad_RGB_binary <= "100000010";    -- row 1 column 3 keypad entry
+          s_keypad_binary <= "1100";             -- C key pressed
         elsif (I_KEYPAD_ROW_2 = '1') then
           s_keypad_binary <= "0011";             -- 3 key pressed
-          s_keypad_RGB_binary <= "010000010";    -- row 2 column 3 keypad entry
         elsif (I_KEYPAD_ROW_3 = '1') then
-          s_keypad_binary <= "0110";             -- 6 key pressed 
-          s_keypad_RGB_binary <= "001000010";    -- row 3 column 3 keypad entry
+          s_keypad_binary <= "0110";             -- 6 key pressed
         elsif (I_KEYPAD_ROW_4 = '1') then
-          s_keypad_binary <= "1001";             -- 9 key pressed 
-          s_keypad_RGB_binary <= "000100010";    -- row 4 column 3 keypad entry
+          s_keypad_binary <= "1001";             -- 9 key pressed
         elsif (I_KEYPAD_ROW_5 = '1') then
-          h_key_pressed <= '1';                  -- H key pressed 
-          s_keypad_RGB_binary <= "000010010";    -- row 5 column 3 keypad entry
+          h_key_pressed <= '1';                  -- H key pressed
         else
           s_keypad_binary <= s_keypad_binary;
         end if;
@@ -305,19 +285,14 @@ begin
       elsif (s_keypad_state = COL4_READ_STATE) then
         if    (I_KEYPAD_ROW_1 = '1') then
           s_keypad_binary <= "1101";
-          s_keypad_RGB_binary <= "100000001";    -- row 1 column 4 keypad entry
         elsif (I_KEYPAD_ROW_2 = '1') then
           s_keypad_binary <= "1110";
-          s_keypad_RGB_binary <= "010000001";    -- row 2 column 4 keypad entry
         elsif (I_KEYPAD_ROW_3 = '1') then
           s_keypad_binary <= "1111";
-          s_keypad_RGB_binary <= "001000001";    -- row 3 column 4 keypad entry
         elsif (I_KEYPAD_ROW_4 = '1') then
           shift_key_pressed <= '1';
-          s_keypad_RGB_binary <= "000100001";    -- row 4 column 4 keypad entry
         elsif (I_KEYPAD_ROW_5 = '1') then
           shift_key_pressed <= '1';
-          s_keypad_RGB_binary <= "000010001";    -- row 5 column 4 keypad entry
         else
           s_keypad_binary <= s_keypad_binary;
         end if;
@@ -333,6 +308,5 @@ begin
   O_KEYPAD_COL_3          <= s_keypad_col_3;
   O_KEYPAD_COL_4          <= s_keypad_col_4;
   O_KEYPAD_BINARY         <= s_keypad_binary;
-  O_KEYPAD_RGB_BINARY     <= s_keypad_RGB_binary;
   ------------------------------------------------------------------------------
 end architecture rtl;
