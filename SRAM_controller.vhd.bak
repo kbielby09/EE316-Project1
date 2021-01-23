@@ -146,10 +146,10 @@ begin
   end process SRAM_COUNTER;
 
   
-  SRAM_Controller_FSM : process(I_CLK_50MHZ, INITIALIZE, MEM_RESET, R_W, IN_DATA)
+  SRAM_Controller_FSM : process(I_CLK_50MHZ, INITIALIZE, RESET, R_W, IN_DATA)
 		begin
 			if rising_edge(I_CLK_50MHZ) then
-				if(INITIALIZE = '1' or MEM_RESET = '1') then
+				if(INITIALIZE = '1' or RESET = '1') then
 					WE <= '1';
 					CE <= '0';
 					OE <= '1';
@@ -181,7 +181,7 @@ begin
 							BUSY <= '1';
 							--timing needed
 							
-							output_data(15 downto 8) <= unsigned(data_tofrom_SRAM);
+							output_data(15 downto 8) <= data_tofrom_SRAM;
 							
 							state <= state_read2;
 						when state_read2 =>
@@ -194,13 +194,13 @@ begin
 							BUSY <= '1';
 							--timing needed
 							
-							output_data(7 downto 0) <= unsigned(data_tofrom_SRAM);
+							output_data(7 downto 0) <= data_tofrom_SRAM;
 							
 							out_DATA <= std_logic_vector(output_data);
 							
 							state <= state_ready;
 						when state_write1 =>
-							input_data <= unsigned(IN_DATA);
+							input_data <= IN_DATA;
 							
 							--write1 state outputs write lower bits first
 							WE <= '0';
