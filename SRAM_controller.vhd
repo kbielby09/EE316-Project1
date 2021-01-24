@@ -219,18 +219,104 @@ end process OUPUT_DATA;
 WRITE_DATA : process(I_CLK_50MHZ)
 begin
   if (rising_edge(I_CLK_50MHZ)) then
-  
-  end if;
-end process WRITE_DATA;
 
+  SRAM_Controller_FSM : process(I_CLK_50MHZ, INITIALIZE, MEM_RESET, R_W, IN_DATA)
+		begin
+			if rising_edge(I_CLK_50MHZ) then
+				if(INITIALIZE = '1' or MEM_RESET = '1') then
+					WE <= '1';
+					CE <= '0';
+					OE <= '1';
 
-  OUT_DATA_ADR <= std_logic_vector(input_data_addr);
-  -- OUT_DATA     <= DIO; -- when first_pass = '0' else read_data;  -- TODO remove after testing purposes
-  DIO          <= std_logic_vector(input_data) when tri_state = '1' else "ZZZZZZZZZZZZZZZZ";
-  CE_N         <= '0';  -- NOTE may need to change during testing
-  WE           <= first_pass;
-  OE           <= '0';
+					state <= state_init;
+				else
+					case state is
+						when state_init =>
+							state <= state_ready;
+						when state_ready =>
+							WE <= '1';
+							CE <= '0';
+							OE <= '1';
+							BUSY <= '0';
 
+							if(R_W = '1') then
+								state <= state_read1;
+							elsif(R_W = '0') then
+								state <= state_write1;
+							else
+								state <= state_ready;
+							end if;
+						when state_read1 =>
+							--read1 state outputs read upper bits first
+							WE <= '1';
+							OE <= '0';
+							UB <= '1';
+							LB <= '0';
+							BUSY <= '1';
+
+							--timing wait for one clock cycle
+							while not one_hz_counter'event loop
+							end loop;
+
+							output_data(15 downto 8) <= unsigned(data_tofrom_SRAM);
+
+							state <= state_read2;
+						when state_read2 =>
+
+							--read2 state outputs send lower bits second
+							WE <= '1';
+							OE <= '0';
+							UB <= '0';
+							LB <= '1';
+							BUSY <= '1';
+
+							--timing wait for one clock cycle
+							while not one_hz_counter'event loop
+							end loop;
+
+							output_data(7 downto 0) <= unsigned(data_tofrom_SRAM);
+
+							out_DATA <= std_logic_vector(output_data);
+
+							state <= state_ready;
+						when state_write1 =>
+							input_data <= unsigned(IN_DATA);
+
+							--write1 state outputs write lower bits first
+							WE <= '0';
+							OE <= '1';
+							UB <= '0';
+							LB <= '1';
+							BUSY <= '1';
+
+							--timing wait for one clock cycle
+							while not one_hz_counter'event loop
+							end loop;
+
+							data_tofrom_SRAM <= input_data(7 downto 0);
+
+							state <= state_write2;
+						when state_write2 =>
+							--write2 state outputs write upper bits second
+							WE <= '0';
+							OE <= '1';
+							UB <= '1';
+							LB <= '0';
+							BUSY <= '1';
+
+							--timing wait for one clock cycle
+							while not one_hz_counter'event loop
+							end loop;
+
+							data_tofrom_SRAM <= input_data(15 downto 8);
+
+						   state <= state_ready;
+					end case;
+				end if;
+			end if;
+		end process SRAM_Controller_FSM;
+
+  OUT_DATA_ADR <= input_data_addr;
 
 ------------------------------------------------------------------------------
   -- Process Name     : REFRESH_DIGITS
