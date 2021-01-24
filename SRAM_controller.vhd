@@ -179,7 +179,10 @@ begin
 							UB <= '1';
 							LB <= '0';
 							BUSY <= '1';
-							--timing needed
+							
+							--timing wait for one clock cycle
+							while not one_hz_counter'event loop 
+							end loop;
 							
 							output_data(15 downto 8) <= unsigned(data_tofrom_SRAM);
 							
@@ -192,7 +195,10 @@ begin
 							UB <= '0';
 							LB <= '1';
 							BUSY <= '1';
-							--timing needed
+							
+							--timing wait for one clock cycle
+							while not one_hz_counter'event loop 
+							end loop;
 							
 							output_data(7 downto 0) <= unsigned(data_tofrom_SRAM);
 							
@@ -208,7 +214,10 @@ begin
 							UB <= '0';
 							LB <= '1';
 							BUSY <= '1';
-							--timing needed
+							
+							--timing wait for one clock cycle
+							while not one_hz_counter'event loop 
+							end loop;
 							
 							data_tofrom_SRAM <= input_data(7 downto 0);
 							
@@ -220,7 +229,10 @@ begin
 							UB <= '1';
 							LB <= '0';
 							BUSY <= '1';
-							--timing needed 
+							
+							--timing wait for one clock cycle 
+							while not one_hz_counter'event loop 
+							end loop;
 						
 							data_tofrom_SRAM <= input_data(15 downto 8);
 						
@@ -231,9 +243,6 @@ begin
 		end process SRAM_Controller_FSM;
 
   OUT_DATA_ADR <= input_data_addr;
-  
-
-
 
 ------------------------------------------------------------------------------
   -- Process Name     : REFRESH_DIGITS
