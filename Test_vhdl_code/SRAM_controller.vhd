@@ -219,7 +219,7 @@ end process OUPUT_DATA;
 WRITE_DATA : process(I_CLK_50MHZ)
 begin
   if (rising_edge(I_CLK_50MHZ)) then
-  
+
   end if;
 end process WRITE_DATA;
 
