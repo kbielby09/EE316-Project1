@@ -138,7 +138,7 @@ begin
                if(one_hz_counter = "10111110101111000001111111") then
                  if(input_data_addr = "11111111" and count_enable = '0') then
                      input_data_addr <= "00000000";  -- reset address count
-                else
+                elsif(R_W = '1') then
                     input_data_addr <= input_data_addr + 1;  -- increase count
                  end if;
                end if;
