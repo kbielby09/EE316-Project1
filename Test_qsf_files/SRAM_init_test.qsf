@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone II"
 set_global_assignment -name DEVICE EP2C35F672C6
-set_global_assignment -name TOP_LEVEL_ENTITY SRAM_controller
+set_global_assignment -name TOP_LEVEL_ENTITY sram_ctrl
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 13.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "18:29:59  JANUARY 19, 2021"
 set_global_assignment -name LAST_QUARTUS_VERSION 13.0
@@ -52,6 +52,49 @@ set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulati
 
 set_location_assignment PIN_N2 -to I_CLK_50MHZ
 set_location_assignment PIN_N25 -to MEM_RESET
+
+set_location_assignment PIN_AF10 -to O_HEX0_N[0]
+set_location_assignment PIN_AB12 -to O_HEX0_N[1]
+set_location_assignment PIN_AC12 -to O_HEX0_N[2]
+set_location_assignment PIN_AD11 -to O_HEX0_N[3]
+set_location_assignment PIN_AE11 -to O_HEX0_N[4]
+set_location_assignment PIN_V14 -to O_HEX0_N[5]
+set_location_assignment PIN_V13 -to O_HEX0_N[6]
+set_location_assignment PIN_V20 -to O_HEX1_N[0]
+set_location_assignment PIN_V21 -to O_HEX1_N[1]
+set_location_assignment PIN_W21 -to O_HEX1_N[2]
+set_location_assignment PIN_Y22 -to O_HEX1_N[3]
+set_location_assignment PIN_AA24 -to O_HEX1_N[4]
+set_location_assignment PIN_AA23 -to O_HEX1_N[5]
+set_location_assignment PIN_AB24 -to O_HEX1_N[6]
+set_location_assignment PIN_AB23 -to O_HEX2_N[0]
+set_location_assignment PIN_V22 -to O_HEX2_N[1]
+set_location_assignment PIN_AC25 -to O_HEX2_N[2]
+set_location_assignment PIN_AC26 -to O_HEX2_N[3]
+set_location_assignment PIN_AB26 -to O_HEX2_N[4]
+set_location_assignment PIN_AB25 -to O_HEX2_N[5]
+set_location_assignment PIN_Y24 -to O_HEX2_N[6]
+set_location_assignment PIN_Y23 -to O_HEX3_N[0]
+set_location_assignment PIN_AA25 -to O_HEX3_N[1]
+set_location_assignment PIN_AA26 -to O_HEX3_N[2]
+set_location_assignment PIN_Y26 -to O_HEX3_N[3]
+set_location_assignment PIN_Y25 -to O_HEX3_N[4]
+set_location_assignment PIN_U22 -to O_HEX3_N[5]
+set_location_assignment PIN_W24 -to O_HEX3_N[6]
+set_location_assignment PIN_U9 -to O_HEX4_N[0]
+set_location_assignment PIN_U1 -to O_HEX4_N[1]
+set_location_assignment PIN_U2 -to O_HEX4_N[2]
+set_location_assignment PIN_T4 -to O_HEX4_N[3]
+set_location_assignment PIN_R7 -to O_HEX4_N[4]
+set_location_assignment PIN_R6 -to O_HEX4_N[5]
+set_location_assignment PIN_T3 -to O_HEX4_N[6]
+set_location_assignment PIN_T2 -to O_HEX5_N[0]
+set_location_assignment PIN_P6 -to O_HEX5_N[1]
+set_location_assignment PIN_P7 -to O_HEX5_N[2]
+set_location_assignment PIN_T9 -to O_HEX5_N[3]
+set_location_assignment PIN_R5 -to O_HEX5_N[4]
+set_location_assignment PIN_R4 -to O_HEX5_N[5]
+set_location_assignment PIN_R3 -to O_HEX5_N[6]
 
 set_location_assignment PIN_D25 -to I_KEYPAD_ROW_1
 set_location_assignment PIN_E26 -to I_KEYPAD_ROW_2
@@ -109,24 +152,45 @@ set_location_assignment PIN_M20 -to IN_DATA_ADDR[5]
 set_location_assignment PIN_N20 -to IN_DATA_ADDR[6]
 set_location_assignment PIN_M21 -to IN_DATA_ADDR[7]
 
-set_location_assignment PIN_AE4 -to OUT_DATA_ADR[0]
-set_location_assignment PIN_AF4 -to OUT_DATA_ADR[1]
-set_location_assignment PIN_AC5 -to OUT_DATA_ADR[2]
-set_location_assignment PIN_AC6 -to OUT_DATA_ADR[3]
-set_location_assignment PIN_AD4 -to OUT_DATA_ADR[4]
-set_location_assignment PIN_AD5 -to OUT_DATA_ADR[5]
-set_location_assignment PIN_AD7 -to OUT_DATA_ADR[6]
-set_location_assignment PIN_V10 -to OUT_DATA_ADR[7]
+set_location_assignment PIN_AE22 -to OUT_DATA_ADR[0]
+set_location_assignment PIN_AF22 -to OUT_DATA_ADR[1]
+set_location_assignment PIN_W19 -to OUT_DATA_ADR[2]
+set_location_assignment PIN_V18 -to OUT_DATA_ADR[3]
+set_location_assignment PIN_U18 -to OUT_DATA_ADR[4]
+set_location_assignment PIN_U17 -to OUT_DATA_ADR[5]
+set_location_assignment PIN_AA20 -to OUT_DATA_ADR[6]
+set_location_assignment PIN_Y18 -to OUT_DATA_ADR[7]
+
+set_location_assignment PIN_AE23 -to OUT_DATA[0]
+set_location_assignment PIN_AF23 -to OUT_DATA[1]
+set_location_assignment PIN_AB21 -to OUT_DATA[2]
+set_location_assignment PIN_AC22 -to OUT_DATA[3]
+set_location_assignment PIN_AD22 -to OUT_DATA[4]
+set_location_assignment PIN_AD23 -to OUT_DATA[5]
+set_location_assignment PIN_AD21 -to OUT_DATA[6]
+set_location_assignment PIN_AC21 -to OUT_DATA[7]
+set_location_assignment PIN_AA14 -to OUT_DATA[8]
+set_location_assignment PIN_Y13 -to OUT_DATA[9]
+set_location_assignment PIN_AA13 -to OUT_DATA[10]
+set_location_assignment PIN_AC14 -to OUT_DATA[11]
+set_location_assignment PIN_AD15 -to OUT_DATA[12]
+set_location_assignment PIN_AE15 -to OUT_DATA[13]
+set_location_assignment PIN_AF13 -to OUT_DATA[14]
+set_location_assignment PIN_AE13 -to OUT_DATA[15]
+
+set_location_assignment PIN_AF9 -to UB
+set_location_assignment PIN_AE9 -to LB
+
 
 set_global_assignment -name VHDL_FILE SRAM_controller.vhd
+set_global_assignment -name VHDL_FILE ../Users/bielbyka/Downloads/sram_ctrl.vhd
+set_global_assignment -name VHDL_FILE key_counter.vhd
 set_global_assignment -name VHDL_FILE hex_keypad_driver.vhd
+set_global_assignment -name VHDL_FILE "../EE316-Project1/SRAM_TEST.vhd"
+set_global_assignment -name VHDL_FILE one_hz_counter.vhd
+
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-
-
-
-
-
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

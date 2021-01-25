@@ -29,7 +29,7 @@ port
 
   INITIALIZE     : in std_logic;                    -- Input signal used to iniialize SRAM
 
-  MEM_RESET      : in std_logic;                    -- Input signal to reset SRAM data form ROM
+  I_SYSTEM_RST      : in std_logic;                    -- Input signal to reset SRAM data form ROM
 
   RW : in std_logic;
 
@@ -40,8 +40,11 @@ port
   CE_N : out std_logic;
 
   -- Read/Write enable signals
-  WE    : out std_logic;     -- signal for writing to SRAM
+  WE_N    : out std_logic;     -- signal for writing to SRAM
   OE    : out std_logic;     -- Input signal for enabling output
+
+  UB    : out std_logic;
+  LB    : out std_logic;
 
   -- digit selection input
   -- IN_DATA      : in std_logic_vector(15 downto 0);    -- gives the values of the digits to be illuminated
@@ -67,6 +70,23 @@ end SRAM_controller;
 --------------------------------
 architecture rtl of SRAM_controller is
 
+  ----------------
+  -- COMPONENTS --
+  ----------------
+  component one_hz_counter is
+  port
+  (
+    -- Clocks & Resets
+    I_CLK_50MHZ    : in std_logic;                    -- Input clock signal
+
+    I_SYSTEM_RST   : in std_logic;
+
+    CLK_ENABLE     : out std_logic
+
+  );
+  end component one_hz_counter;
+
+
   -------------
   -- SIGNALS --
   -------------
@@ -80,9 +100,6 @@ architecture rtl of SRAM_controller is
                       READ2);
 
   signal current_state : SRAM_STATE;  -- current state of the
-
-  -- counter signal for 1 Hz clock
-  signal one_hz_counter : unsigned(25 downto 0) := "00000000000000000000000000";
 
   signal count_enable : std_logic;
 
@@ -113,29 +130,24 @@ architecture rtl of SRAM_controller is
 
   signal first_pass : std_logic := '0';  -- TODO remove signal after test
 
+  signal lower_bit_enable : std_logic;
+  signal upper_bit_enable : std_logic;
 
 begin
 
-  ONE_HZ_CLOCK : process (I_CLK_50MHZ, MEM_RESET)
-      begin
-		   if(MEM_RESET = '1') then
-			    -- TODO add reset code here
-			elsif (rising_edge(I_CLK_50MHZ)) then
-				  one_hz_counter <= one_hz_counter + 1;
-		      if (one_hz_counter = "10111110101111000001111111") then  -- check for 1 Hz clock (count to 50 million)
-				      count_enable <= '1';
-              one_hz_counter <= (others => '0');
-				  else
-				      count_enable <= '0';
-		      end if;
-			end if;
+  ONE_HZ_COMPONENT : one_hz_counter
+      port map(
+          I_CLK_50MHZ => I_CLK_50MHZ,
 
-  end process ONE_HZ_CLOCK;
+          I_SYSTEM_RST => I_SYSTEM_RST,
 
-   SRAM_COUNTER : process (I_CLK_50MHZ, MEM_RESET)
+          CLK_ENABLE => count_enable
+      );
+
+   SRAM_COUNTER : process (I_CLK_50MHZ, I_SYSTEM_RST)
        begin
            if(rising_edge(I_CLK_50MHZ)) then
-               if(one_hz_counter = "10111110101111000001111111") then
+               if(count_enable = '1') then
                  if(input_data_addr = "000000000000001111") then --and count_enable = '0') then
                      input_data_addr <= (others => '0');  -- reset address count
                      first_pass <= '1'; -- not(first_pass);
@@ -157,14 +169,6 @@ begin
            end if;
        end if;
   end process SRAM_DATA_COUNTER;
-
- -- INITIALIZE_SRAM : process (I_CLK_50MHZ, INITIALIZE, RESET)
- --     begin
- --       if(INITIALIZE = '1' or RESET = '1') then
- --
- --       end if;
- --
- -- end process INITIALIZE_SRAM;
 
  -- state machine responsible for changing the states of the SRAM state machine
  STATE_CHANGE : process (I_CLK_50MHZ, RW, DIO)
@@ -207,8 +211,8 @@ begin
 
  OUPUT_DATA : process(I_CLK_50MHZ)
  begin
-   if(rising_edge(I_CLK_50MHZ)) then
-     if(first_pass = '0') then
+   if (rising_edge(I_CLK_50MHZ)) then
+     if (first_pass = '0') then
          OUT_DATA <= std_logic_vector(input_data);
      elsif (first_pass = '1') then
          OUT_DATA <= read_data;
@@ -219,17 +223,25 @@ end process OUPUT_DATA;
 WRITE_DATA : process(I_CLK_50MHZ)
 begin
   if (rising_edge(I_CLK_50MHZ)) then
-
+      if (tri_state = '1') then
+          DIO <= std_logic_vector(input_data);
+      elsif (tri_state = '0') then
+          DIO <= "ZZZZZZZZZZZZZZZZ";
+      end if;
   end if;
 end process WRITE_DATA;
 
 
+
+
   OUT_DATA_ADR <= std_logic_vector(input_data_addr);
   -- OUT_DATA     <= DIO; -- when first_pass = '0' else read_data;  -- TODO remove after testing purposes
-  DIO          <= std_logic_vector(input_data) when tri_state = '1' else "ZZZZZZZZZZZZZZZZ";
+  -- DIO          <= std_logic_vector(input_data) when tri_state = '1' else "ZZZZZZZZZZZZZZZZ";
   CE_N         <= '0';  -- NOTE may need to change during testing
-  WE           <= first_pass;
+  WE_N         <= not(tri_state); -- first_pass;
   OE           <= '0';
+  UB           <= '0';
+  LB           <= '0';
 
 
 ------------------------------------------------------------------------------
