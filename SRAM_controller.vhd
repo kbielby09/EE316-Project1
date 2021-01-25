@@ -161,7 +161,7 @@ begin
 							CE <= '0';
 							OE <= '1';
 							BUSY <= '0';
-							UB <= '1;
+							UB <= '1';
 							LB <= '1';	
 							state <= state_ready;
 							
