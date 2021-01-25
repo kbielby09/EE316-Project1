@@ -2,7 +2,7 @@
 -- Filename     : SRAM_controller.vhd
 -- Author       : Kyle Bielby & Joseph Drahos
 -- Date Created : 2021-1-14
--- Last Revised : 2021-1-
+-- Last Revised : 2021-1-25
 -- Project      : EE316 Project 1
 -- Description  : SRAM controller code to read and write data 
 --------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ begin
 				  one_hz_counter <= one_hz_counter + 1;
 		      if (one_hz_counter = "10111110101111000001111111") then  -- check for 1 Hz clock (count to 50 million)
 				      count_enable <= '1';
-              one_hz_counter <= (others => '0');
+						one_hz_counter <= (others => '0');
 				  else
 				      count_enable <= '0';
 		      end if;
@@ -132,33 +132,39 @@ begin
   end process ONE_HZ_CLOCK;
 
 
-  SRAM_COUNTER : process (I_CLK_50MHZ)
+  SRAM_COUNTER : process (I_CLK_50MHZ, R_W)
       begin
 			if(rising_edge(I_CLK_50MHZ)) then
-               if(one_hz_counter = "10111110101111000001111111") then
+               if(one_hz_counter = "10111110101111000001111111" and R_W = '1') then
                  if(input_data_addr = "11111111" and count_enable = '0') then
                      input_data_addr <= "00000000";  -- reset address count
-                elsif(R_W = '1') then
+                 else
                     input_data_addr <= input_data_addr + 1;  -- increase count
                  end if;
-               end if;
+               
+					elsif(not (state = state_read1) or not (state = state_read2)) then
+						input_data_addr <= IN_DATA_ADDR;
+					end if;
            end if;
   end process SRAM_COUNTER;
 
   
-  SRAM_Controller_FSM : process(I_CLK_50MHZ, INITIALIZE, MEM_RESET, R_W, IN_DATA)
+  SRAM_Controller_FSM : process(I_CLK_50MHZ, INITIALIZE, MEM_RESET, R_W, IN_DATA, IN_DATA_ADDR)
 		begin
 			if rising_edge(I_CLK_50MHZ) then
 				if(INITIALIZE = '1' or MEM_RESET = '1') then
-					WE <= '1';
-					CE <= '0';
-					OE <= '1';
-					
 					state <= state_init;
 				else
 					case state is
 						when state_init =>
+							WE <= '1';
+							CE <= '0';
+							OE <= '1';
+							BUSY <= '0';
+							UB <= '1;
+							LB <= '1';	
 							state <= state_ready;
+							
 						when state_ready =>
 							WE <= '1';
 							CE <= '0';
