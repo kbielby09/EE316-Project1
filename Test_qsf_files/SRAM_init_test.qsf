@@ -51,81 +51,26 @@ set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 
 set_location_assignment PIN_N2 -to I_CLK_50MHZ
-set_location_assignment PIN_N25 -to MEM_RESET
+set_location_assignment PIN_G26 -to I_SYSTEM_RST_N
 
-set_location_assignment PIN_AF10 -to O_HEX0_N[0]
-set_location_assignment PIN_AB12 -to O_HEX0_N[1]
-set_location_assignment PIN_AC12 -to O_HEX0_N[2]
-set_location_assignment PIN_AD11 -to O_HEX0_N[3]
-set_location_assignment PIN_AE11 -to O_HEX0_N[4]
-set_location_assignment PIN_V14 -to O_HEX0_N[5]
-set_location_assignment PIN_V13 -to O_HEX0_N[6]
-set_location_assignment PIN_V20 -to O_HEX1_N[0]
-set_location_assignment PIN_V21 -to O_HEX1_N[1]
-set_location_assignment PIN_W21 -to O_HEX1_N[2]
-set_location_assignment PIN_Y22 -to O_HEX1_N[3]
-set_location_assignment PIN_AA24 -to O_HEX1_N[4]
-set_location_assignment PIN_AA23 -to O_HEX1_N[5]
-set_location_assignment PIN_AB24 -to O_HEX1_N[6]
-set_location_assignment PIN_AB23 -to O_HEX2_N[0]
-set_location_assignment PIN_V22 -to O_HEX2_N[1]
-set_location_assignment PIN_AC25 -to O_HEX2_N[2]
-set_location_assignment PIN_AC26 -to O_HEX2_N[3]
-set_location_assignment PIN_AB26 -to O_HEX2_N[4]
-set_location_assignment PIN_AB25 -to O_HEX2_N[5]
-set_location_assignment PIN_Y24 -to O_HEX2_N[6]
-set_location_assignment PIN_Y23 -to O_HEX3_N[0]
-set_location_assignment PIN_AA25 -to O_HEX3_N[1]
-set_location_assignment PIN_AA26 -to O_HEX3_N[2]
-set_location_assignment PIN_Y26 -to O_HEX3_N[3]
-set_location_assignment PIN_Y25 -to O_HEX3_N[4]
-set_location_assignment PIN_U22 -to O_HEX3_N[5]
-set_location_assignment PIN_W24 -to O_HEX3_N[6]
-set_location_assignment PIN_U9 -to O_HEX4_N[0]
-set_location_assignment PIN_U1 -to O_HEX4_N[1]
-set_location_assignment PIN_U2 -to O_HEX4_N[2]
-set_location_assignment PIN_T4 -to O_HEX4_N[3]
-set_location_assignment PIN_R7 -to O_HEX4_N[4]
-set_location_assignment PIN_R6 -to O_HEX4_N[5]
-set_location_assignment PIN_T3 -to O_HEX4_N[6]
-set_location_assignment PIN_T2 -to O_HEX5_N[0]
-set_location_assignment PIN_P6 -to O_HEX5_N[1]
-set_location_assignment PIN_P7 -to O_HEX5_N[2]
-set_location_assignment PIN_T9 -to O_HEX5_N[3]
-set_location_assignment PIN_R5 -to O_HEX5_N[4]
-set_location_assignment PIN_R4 -to O_HEX5_N[5]
-set_location_assignment PIN_R3 -to O_HEX5_N[6]
-
-set_location_assignment PIN_D25 -to I_KEYPAD_ROW_1
-set_location_assignment PIN_E26 -to I_KEYPAD_ROW_2
-set_location_assignment PIN_F24 -to I_KEYPAD_ROW_3
-set_location_assignment PIN_J21 -to I_KEYPAD_ROW_4
-set_location_assignment PIN_F25 -to I_KEYPAD_ROW_5
-
-set_location_assignment PIN_J22 -to O_KEYPAD_COL_1
-set_location_assignment PIN_E25 -to O_KEYPAD_COL_2
-set_location_assignment PIN_F23 -to O_KEYPAD_COL_3
-set_location_assignment PIN_J20 -to O_KEYPAD_COL_4
-
-set_location_assignment PIN_AE22 -to H_KEY_OUT
-set_location_assignment PIN_AF22 -to L_KEY_OUT
-
-set_location_assignment PIN_W19 -to O_KEYPAD_BINARY[0]
-set_location_assignment PIN_V18 -to O_KEYPAD_BINARY[1]
-set_location_assignment PIN_U17 -to O_KEYPAD_BINARY[2]
-set_location_assignment PIN_AA20 -to O_KEYPAD_BINARY[3]
-
-set_location_assignment PIN_N26 -to INITIALIZE
-
-set_location_assignment PIN_AD10 -to OE
-set_location_assignment PIN_AE10 -to WE
-set_location_assignment PIN_AC11 -to CE_N
-
-set_location_assignment PIN_M25 -to RW
-
-set_location_assignment PIN_M24 -to READY_O
-
-
+set_location_assignment PIN_AE4 -to OUT_DATA_ADR[0]
+set_location_assignment PIN_AF4 -to OUT_DATA_ADR[1]
+set_location_assignment PIN_AC5 -to OUT_DATA_ADR[2]
+set_location_assignment PIN_AC6 -to OUT_DATA_ADR[3]
+set_location_assignment PIN_AD4 -to OUT_DATA_ADR[4]
+set_location_assignment PIN_AD5 -to OUT_DATA_ADR[5]
+set_location_assignment PIN_AE5 -to OUT_DATA_ADR[6]
+set_location_assignment PIN_AF5 -to OUT_DATA_ADR[7]
+set_location_assignment PIN_AD6 -to OUT_DATA_ADR[8]
+set_location_assignment PIN_AD7 -to OUT_DATA_ADR[9]
+set_location_assignment PIN_V10 -to OUT_DATA_ADR[10]
+set_location_assignment PIN_V9 -to OUT_DATA_ADR[11]
+set_location_assignment PIN_AC7 -to OUT_DATA_ADR[12]
+set_location_assignment PIN_W8 -to OUT_DATA_ADR[13]
+set_location_assignment PIN_W10 -to OUT_DATA_ADR[14]
+set_location_assignment PIN_Y10 -to OUT_DATA_ADR[15]
+set_location_assignment PIN_AB8 -to OUT_DATA_ADR[16]
+set_location_assignment PIN_AC8 -to OUT_DATA_ADR[17]
 set_location_assignment PIN_AD8 -to DIO[0]
 set_location_assignment PIN_AE6 -to DIO[1]
 set_location_assignment PIN_AF6 -to DIO[2]
@@ -142,24 +87,11 @@ set_location_assignment PIN_W11 -to DIO[12]
 set_location_assignment PIN_W12 -to DIO[13]
 set_location_assignment PIN_AC9 -to DIO[14]
 set_location_assignment PIN_AC10 -to DIO[15]
-
-set_location_assignment PIN_K25 -to IN_DATA_ADDR[0]
-set_location_assignment PIN_K26 -to IN_DATA_ADDR[1]
-set_location_assignment PIN_M22 -to IN_DATA_ADDR[2]
-set_location_assignment PIN_M23 -to IN_DATA_ADDR[3]
-set_location_assignment PIN_M19 -to IN_DATA_ADDR[4]
-set_location_assignment PIN_M20 -to IN_DATA_ADDR[5]
-set_location_assignment PIN_N20 -to IN_DATA_ADDR[6]
-set_location_assignment PIN_M21 -to IN_DATA_ADDR[7]
-
-set_location_assignment PIN_AE22 -to OUT_DATA_ADR[0]
-set_location_assignment PIN_AF22 -to OUT_DATA_ADR[1]
-set_location_assignment PIN_W19 -to OUT_DATA_ADR[2]
-set_location_assignment PIN_V18 -to OUT_DATA_ADR[3]
-set_location_assignment PIN_U18 -to OUT_DATA_ADR[4]
-set_location_assignment PIN_U17 -to OUT_DATA_ADR[5]
-set_location_assignment PIN_AA20 -to OUT_DATA_ADR[6]
-set_location_assignment PIN_Y18 -to OUT_DATA_ADR[7]
+set_location_assignment PIN_AE10 -to WE_N
+set_location_assignment PIN_AD10 -to OE
+set_location_assignment PIN_AF9 -to UB
+set_location_assignment PIN_AE9 -to LB
+set_location_assignment PIN_AC11 -to CE_N
 
 set_location_assignment PIN_AE23 -to OUT_DATA[0]
 set_location_assignment PIN_AF23 -to OUT_DATA[1]
@@ -177,9 +109,6 @@ set_location_assignment PIN_AD15 -to OUT_DATA[12]
 set_location_assignment PIN_AE15 -to OUT_DATA[13]
 set_location_assignment PIN_AF13 -to OUT_DATA[14]
 set_location_assignment PIN_AE13 -to OUT_DATA[15]
-
-set_location_assignment PIN_AF9 -to UB
-set_location_assignment PIN_AE9 -to LB
 
 
 set_global_assignment -name VHDL_FILE SRAM_controller.vhd
