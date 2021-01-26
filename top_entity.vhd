@@ -118,6 +118,14 @@ architecture rtl of top_entity is
 		);
   end component SRAM_controller;
   
+	component ROM is
+		port(
+			address	: IN STD_LOGIC_VECTOR (7 downto 0);
+			clock		: IN STD_LOGIC  := '1';
+			q			: OUT STD_LOGIC_VECTOR (15 DOWNTO 0)
+		);
+	end component;
+  
   -- keypad signals
   signal i_keypd_data : std_logic_vector(15 downto 0) := "0000000000001111";
   signal i_keypd_addr : std_logic_vector(17 downto 0) := (others => '1');
@@ -128,6 +136,7 @@ architecture rtl of top_entity is
   -- data signals
   signal sram_data_address : std_logic_vector(17 downto 0);
   signal sram_output_data         : std_logic_vector(15 downto 0);
+  signal sram_input_data	: std_logic_vector(15 downto 0);
 
   -- seven segment display signals
 
@@ -140,6 +149,11 @@ architecture rtl of top_entity is
   -- contains address that data is written to
   signal input_data_addr : std_logic_vector(17 downto 0);
   signal read_write		:std_logic := '0';
+  
+  --ROM signals
+  signal rom_address 	: std_logic_vector (7 downto 0);
+  signal rom_data_out 	: std_logic_vector (15 downto 0);
+  signal isstartup : std_logic := '1';
   
 begin
 
@@ -187,7 +201,7 @@ begin
 		I_CLK_50MHZ => I_CLK_50MHZ,
 		MEM_RESET => I_RESET_N,
 		R_W => read_write,
-		IN_DATA => i_keypd_data,
+		IN_DATA => sram_input_data,
 		IN_DATA_ADDR => input_data_addr,
 		OUT_DATA => sram_output_data,
 		SRAM_bidir_bus => SRAM_bidir_bus,
@@ -198,6 +212,13 @@ begin
 		UB => UB,
 		BUSY => BUSY,
 		OUT_DATA_ADR => OUT_DATA_ADR
+	 );
+	 
+	 ROM_MAPPING : ROM 
+	 port map(
+		address => rom_address,
+		clock => I_CLK_50MHZ,
+		q => rom_data_out
 	 );
 	 
 	 --SRAM processes
@@ -217,31 +238,57 @@ begin
 
   end process ONE_HZ_CLOCK;
   
-  SRAM_COUNTER : process (I_CLK_50MHZ)
+  ------------------------------------------------------------------------------
+  -- Process Name     : SRAM_COUNTER
+  -- Sensitivity List : I_CLK_50MHZ    : 100 MHz global clock
+  --                    I_RESET_N    : Global Reset line
+  -- Useful Outputs   : input_data_addr
+  --                    
+  -- Description      : Initializes SRAM to ROM values when reset
+  --							Increments SRAM address every second in read mode
+  --							Changes SRAM address in write mode
+  ------------------------------------------------------------------------------
+  SRAM_COUNTER : process (I_CLK_50MHZ, I_RESET_N)
       begin
 			if(rising_edge(I_CLK_50MHZ)) then
-               if(one_hz_counter = "10111110101111000001111111" and read_write = '1') then
-                 if(input_data_addr = "000000000011111111" and count_enable = '0') then
-                     input_data_addr <= "000000000000000000";  -- reset address count
-                 else
-                    input_data_addr <= input_data_addr + 1;  -- increase count
-                 end if;
-               
-					elsif(not read_write = '1') then
-						input_data_addr <= sram_data_address;
-					end if;
-           end if;
+				if(I_RESET_N = '1' or isstartup = '1') then
+					isstartup <= '0';
+					input_data_addr <= "000000000000000000";
+					rom_address <= "00000000";
+					
+					for I in 0 to 255 loop
+						sram_input_data <= rom_data_out;
+						input_data_addr <= input_data_addr + 1;
+						rom_address <= rom_address + 1;
+						
+						--delay for write time;
+						for J in 0 to 3 loop
+						end loop;	
+					end loop;
+				elsif(one_hz_counter = "10111110101111000001111111" and read_write = '1') then
+				  if(input_data_addr = "000000000011111111" and count_enable = '0') then
+						input_data_addr <= "000000000000000000";  -- reset address count
+				  else
+					  input_data_addr <= input_data_addr + 1;  -- increase count
+				  end if;
+				
+				elsif(not read_write = '1') then
+					input_data_addr <= sram_data_address;
+				end if;
+		  end if;
   end process SRAM_COUNTER;
   
-  READ_WRITE_TOGGLE : process (I_CLK_50MHZ)
+  READ_WRITE_TOGGLE : process (I_CLK_50MHZ, I_RESET_N)
 	begin 
 		if(rising_edge(I_CLK_50MHZ)) then
-			if (shift_key_pressed = '1') then
+			if (shift_key_pressed = '1' and I_RESET_N = '0') then
 				if(read_write = '1') then
 					read_write <= '0';
 				else
 					read_write <= '1';
 				end if;
+			else
+				read_write <= '0'; --reset
 			end if;
 		end if;
   end process READ_WRITE_TOGGLE;
