@@ -23,13 +23,11 @@ USE ieee.std_logic_unsigned.ALL;
 --------------
 --  Entity  --
 --------------
-entity SRAM_Controller is
+entity SRAM_controller is
 port
 (
   -- Clocks & Resets
   I_CLK_50MHZ    : in std_logic;                    -- Input clock signal
-
-  INITIALIZE 	  : in std_logic;							 -- Input signal used to initialize sram controller
   
   MEM_RESET      : in std_logic;                    -- Input signal to reset SRAM data form ROM
 
@@ -42,7 +40,7 @@ port
                                                             -- bits 0-3: digit 1; bits 4-7: digit 2, bits 8-11: digit 3
                                                             -- bits 12-15: digit 4
 
-  IN_DATA_ADDR : in std_logic_vector(7 downto 0);     -- gives the values of the SRAM address that is to be displayed
+  IN_DATA_ADDR : in std_logic_vector(17 downto 0);     -- gives the values of the SRAM address that is to be displayed
 
 
   -- seven segment display digit selection port
@@ -61,17 +59,17 @@ port
   BUSY  : out std_logic;	  --output for controller busy signal 
   
  -- hex display for data address
- OUT_DATA_ADR : out std_logic_vector(7 downto 0)      -- segments that are to be illuminated for the seven segment hex
+ OUT_DATA_ADR : out std_logic_vector(17 downto 0)      -- segments that are to be illuminated for the seven segment hex
                                                             -- digits that are being used to display the address
 
   );
-end SRAM_Controller;
+end SRAM_controller;
 
 
 --------------------------------
 --  Architecture Declaration  --
 --------------------------------
-architecture rtl of SRAM_Controller is
+architecture rtl of SRAM_controller is
 
   -------------
   -- SIGNALS --
@@ -114,45 +112,11 @@ architecture rtl of SRAM_Controller is
   signal data_tofrom_SRAM : std_logic_vector(7 downto 0);
   
 begin
-
-	ONE_HZ_CLOCK : process (I_CLK_50MHZ, MEM_RESET)
-      begin
-		   if(MEM_RESET = '1') then
-			    -- TODO add reset code here
-			elsif (rising_edge(I_CLK_50MHZ)) then
-				  one_hz_counter <= one_hz_counter + 1;
-		      if (one_hz_counter = "10111110101111000001111111") then  -- check for 1 Hz clock (count to 50 million)
-				      count_enable <= '1';
-						one_hz_counter <= (others => '0');
-				  else
-				      count_enable <= '0';
-		      end if;
-			end if;
-
-  end process ONE_HZ_CLOCK;
-
-
-  SRAM_COUNTER : process (I_CLK_50MHZ, R_W)
-      begin
-			if(rising_edge(I_CLK_50MHZ)) then
-               if(one_hz_counter = "10111110101111000001111111" and R_W = '1') then
-                 if(input_data_addr = "11111111" and count_enable = '0') then
-                     input_data_addr <= "00000000";  -- reset address count
-                 else
-                    input_data_addr <= input_data_addr + 1;  -- increase count
-                 end if;
-               
-					elsif(not (state = state_read1) or not (state = state_read2)) then
-						input_data_addr <= IN_DATA_ADDR;
-					end if;
-           end if;
-  end process SRAM_COUNTER;
-
   
-  SRAM_Controller_FSM : process(I_CLK_50MHZ, INITIALIZE, MEM_RESET, R_W, IN_DATA, IN_DATA_ADDR)
+  SRAM_Controller_FSM : process(I_CLK_50MHZ, MEM_RESET, R_W, IN_DATA, IN_DATA_ADDR)
 		begin
 			if rising_edge(I_CLK_50MHZ) then
-				if(INITIALIZE = '1' or MEM_RESET = '1') then
+				if(MEM_RESET = '1') then
 					state <= state_init;
 				else
 					case state is
@@ -187,7 +151,7 @@ begin
 							BUSY <= '1';
 							
 							--timing wait for one clock cycle
-							while not one_hz_counter'event loop 
+							while not rising_edge(I_CLK_50MHZ) loop 
 							end loop;
 							
 							output_data(15 downto 8) <= unsigned(data_tofrom_SRAM);
@@ -203,7 +167,7 @@ begin
 							BUSY <= '1';
 							
 							--timing wait for one clock cycle
-							while not one_hz_counter'event loop 
+							while not rising_edge(I_CLK_50MHZ) loop 
 							end loop;
 							
 							output_data(7 downto 0) <= unsigned(data_tofrom_SRAM);
@@ -222,7 +186,7 @@ begin
 							BUSY <= '1';
 							
 							--timing wait for one clock cycle
-							while not one_hz_counter'event loop 
+							while not rising_edge(I_CLK_50MHZ) loop 
 							end loop;
 							
 							data_tofrom_SRAM <= std_logic_vector(input_data(7 downto 0));
@@ -237,7 +201,7 @@ begin
 							BUSY <= '1';
 							
 							--timing wait for one clock cycle 
-							while not one_hz_counter'event loop 
+							while not rising_edge(I_CLK_50MHZ) loop 
 							end loop;
 						
 							data_tofrom_SRAM <= std_logic_vector(input_data(15 downto 8));
@@ -248,7 +212,7 @@ begin
 			end if;
 		end process SRAM_Controller_FSM;
 
-  OUT_DATA_ADR <= input_data_addr;
+  OUT_DATA_ADR <= IN_DATA_ADDR;
 
 ------------------------------------------------------------------------------
   -- Process Name     : REFRESH_DIGITS
