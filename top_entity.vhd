@@ -5,8 +5,8 @@ use IEEE.std_logic_1164.all;
 entity top_entity is
     port(
         -- Clocks and base signals
-        SYSTEM_RESET : in std_logic;
-        BASE_CLK : in std_logic;
+        I_RESET_N : in std_logic;
+        I_CLK_50MHZ : in std_logic;
 
         -- Keypad inputs
         I_KEYPAD_ROW_1  : in  std_logic;
@@ -19,7 +19,11 @@ entity top_entity is
         O_KEYPAD_COL_1  : out std_logic;
         O_KEYPAD_COL_2  : out std_logic;
         O_KEYPAD_COL_3  : out std_logic;
-        O_KEYPAD_COL_4  : out std_logic
+        O_KEYPAD_COL_4  : out std_logic;
+
+        -- hex display outputs
+        O_DATA_ADDR	      : out Std_logic_Vector(13 downto 0);
+        O_HEX_N             : out Std_logic_Vector(27 downto 0)
 
         -- SRAM outputs
 
@@ -28,8 +32,21 @@ entity top_entity is
         -- HEX_DATA : out std_logic_vector(15 downto 0)    -- Used for displaying the data in the SRAM
 
     );
+  end top_entity;
 
-architecture Behavior of top_entity is
+architecture rtl of top_entity is
+
+  component quad_hex_driver is
+      port
+      (
+        I_CLK_50MHZ         : in Std_logic;
+        I_RESET_N           : in Std_logic;
+        I_COUNT             : in Std_logic_Vector(15 downto 0);
+        I_DATA_ADDR         : in Std_logic_Vector(7 downto 0);
+        O_DATA_ADDR	      : out Std_logic_Vector(13 downto 0);
+        O_HEX_N             : out Std_logic_Vector(27 downto 0)
+      );
+  end component quad_hex_driver;
 
   component key_counter is
       port(
@@ -64,53 +81,59 @@ architecture Behavior of top_entity is
   end component key_counter;
 
   -- keypad signals
-  signal i_keypd_data : std_logic_vector(15 downto 0);
-  signal i_keypd_addr : std_logic_vector(17 downto 0);
+  signal i_keypd_data : std_logic_vector(15 downto 0) := "0000000000001111";
+  signal i_keypd_addr : std_logic_vector(17 downto 0) := (others => '1');
+  signal h_key_pressed : std_logic;
+  signal l_key_pressed : std_logic;
+  signal shift_key_pressed : std_logic;
 
+  -- data signals
+  signal sram_data_address : std_logic_vector(17 downto 0);
+  signal sram_data         : std_logic_vector(15 downto 0);
 
+  -- seven segment display signals
 
-  -- Seven Segment display component
-  -- component seven_seg_driver is
-  --     port( DATA_IN : in std_logic_vector(15 downto 0);
-  --         DATA_ADDR_IN : in std_logic_vector(7 downto 0);
-  --
-  --      : out std_logic_vector();
-  --      : out std_logic_vector()
-  --     );
-  -- end component
-
-  -- component SRAM_controller is
-  --     port();
-  --   end SRAM_controller;
 
   begin
 
-    -- KEYPAD : key_counter
-    -- port map(
-    --     I_CLK_50MHZ => I_CLK_50MHZ,
-    --     I_SYSTEM_RST => I_SYSTEM_RST,
-    --
-    --     -- Keypad Inputs (rows)
-    --     I_KEYPAD_ROW_1 => I_KEYPAD_ROW_1,
-    --     I_KEYPAD_ROW_2 => I_KEYPAD_ROW_2,
-    --     I_KEYPAD_ROW_3 => I_KEYPAD_ROW_3,
-    --     I_KEYPAD_ROW_4 => I_KEYPAD_ROW_4,
-    --     I_KEYPAD_ROW_5 => I_KEYPAD_ROW_5,
-    --
-    --     -- Keypad Outputs (cols)
-    --     O_KEYPAD_COL_1 => O_KEYPAD_COL_1,
-    --     O_KEYPAD_COL_2 => O_KEYPAD_COL_2,
-    --     O_KEYPAD_COL_3 => O_KEYPAD_COL_3,
-    --     O_KEYPAD_COL_4 => O_KEYPAD_COL_4,
-    --
-    --     OP_MODE => ,
-    --
-    --     -- Function key output
-    --     H_KEY_OUT => ,
-    --     L_KEY_OUT => ,
-    --
-    --     O_KEY_ADDR => ,
-    --
-    --     KEY_DATA_OUT => ,);
+    HEX_DISP : quad_hex_driver
+    port map(
+        I_CLK_50MHZ   => I_CLK_50MHZ,
+        I_RESET_N     => I_RESET_N,
+        I_COUNT       => i_keypd_data,
+        I_DATA_ADDR   => i_keypd_addr(7 downto 0),
+        O_DATA_ADDR	  => O_DATA_ADDR,
+        O_HEX_N       => O_HEX_N
+    );
 
-  end Behavior;
+    KEYPAD : key_counter
+    port map(
+        I_CLK_50MHZ => I_CLK_50MHZ,
+        I_SYSTEM_RST => I_RESET_N,
+
+        -- Keypad Inputs (rows)
+        I_KEYPAD_ROW_1 => I_KEYPAD_ROW_1,
+        I_KEYPAD_ROW_2 => I_KEYPAD_ROW_2,
+        I_KEYPAD_ROW_3 => I_KEYPAD_ROW_3,
+        I_KEYPAD_ROW_4 => I_KEYPAD_ROW_4,
+        I_KEYPAD_ROW_5 => I_KEYPAD_ROW_5,
+
+        -- Keypad Outputs (cols)
+        O_KEYPAD_COL_1 => O_KEYPAD_COL_1,
+        O_KEYPAD_COL_2 => O_KEYPAD_COL_2,
+        O_KEYPAD_COL_3 => O_KEYPAD_COL_3,
+        O_KEYPAD_COL_4 => O_KEYPAD_COL_4,
+
+        OP_MODE => shift_key_pressed,
+
+        -- Function key output
+        H_KEY_OUT => h_key_pressed,
+        L_KEY_OUT => l_key_pressed,
+
+        O_KEY_ADDR => i_keypd_addr,
+
+        KEY_DATA_OUT => i_keypd_data
+    );
+
+
+  end rtl;
