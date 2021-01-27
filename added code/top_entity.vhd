@@ -215,8 +215,10 @@ architecture rtl of top_entity is
 
     ONE_HZ_CLOCK : process (I_CLK_50MHZ, I_SYSTEM_RST_N)
      begin
-      -- if(I_SYSTEM_RST_N = '0') then
-         -- one_hz_counter_signal <= (others => '0');
+      if(I_SYSTEM_RST_N = '1') then
+         one_hz_counter_signal <= (others => '0');
+      end if;
+
      if (rising_edge(I_CLK_50MHZ)) then
          one_hz_counter_signal <= one_hz_counter_signal + 1;
          if (one_hz_counter_signal = "10111110101111000001111111") then  -- check for 1 Hz clock (count to 50 million)
@@ -230,6 +232,28 @@ architecture rtl of top_entity is
 
  end process ONE_HZ_CLOCK;
 
+ SRAM_COUNTER : process (I_CLK_50MHZ, I_RESET_N)
+      begin
+          if (I_RESET_N = '1') then
+               input_data_addr <= (others => '0');
+          end if;
+
+          if(rising_edge(I_CLK_50MHZ)) then
+              if(count_enable = '1') then
+                if(input_data_addr = "00001111") then
+                    input_data_addr <= (others => '0');
+                    RW <= not(RW);
+                else
+                  if (l_key_pressed = '1') then
+                      input_data_addr <= input_data_addr - 1;
+                  else
+                      input_data_addr <= input_data_addr + 1;
+                  end if;
+                end if;
+              end if;
+          end if;
+  end process SRAM_COUNTER;
+
     CONTROL_STATE : process(I_CLK_50MHZ, I_RESET_N)
         begin
             if (rising_edge(I_CLK_50MHZ)) then
@@ -238,17 +262,19 @@ architecture rtl of top_entity is
                     if (rom_initialize = '1') then
                         controller_state <= OPERATION;
                     end if;
+
                 when OPERATION =>
                     if (I_RESET_N = '1') then
-                       controller_state <= INIT;
+                        controller_state <= '0';
                     elsif (shift_key_pressed = '1') then
-                        current_state <= PROGRAMMING;
+                        controller_state <= PROGRAMMING;
                     end if;
+
                 when PROGRAMMING =>
                     if (I_RESET_N = '1') then
                        controller_state <= INIT;
                     elsif (shift_key_pressed = '1') then
-                        current_state <= OPERATION;
+                        controller_state <= OPERATION;
                     end if;
               end case;
             end if;
@@ -264,6 +290,25 @@ architecture rtl of top_entity is
                             input_data_addr <= input_data_addr + 1;
                         end loop;
                     when OPERATION =>
+                        if (I_RESET_N = '1') then
+                            input_data_addr <= (others => '0');
+                        end if;
+
+                        if (shift_key_pressed = '0') then
+                            if(count_enable = '1') then
+                              if(input_data_addr = "00001111") then
+                                  input_data_addr <= (others => '0');
+                                  RW <= not(RW);
+                              else
+                                if (l_key_pressed = '1') then
+                                    input_data_addr <= input_data_addr - 1;
+                                else
+                                    input_data_addr <= input_data_addr + 1;
+                                end if;
+                              end if;
+                            end if;
+                        end if;
+
 
                     when PROGRAMMING =>
 
