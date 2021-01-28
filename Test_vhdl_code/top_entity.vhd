@@ -37,10 +37,6 @@ entity top_entity is
 
         LEDG0 : out std_logic
 
-        -- Seven-seg display outputs
-        -- HEX_ADDR : out std_logic_vector(7 downto 0);  -- Used for sending the address to the hexadecimal driver
-        -- HEX_DATA : out std_logic_vector(15 downto 0)    -- Used for displaying the data in the SRAM
-
     );
   end top_entity;
 
@@ -63,8 +59,7 @@ architecture rtl of top_entity is
     IN_DATA_ADDR : in std_logic_vector(17 downto 0);
     OUT_DATA    : out std_logic_vector(15 downto 0);
     OUT_DATA_ADR : out std_logic_vector(17 downto 0)
-
-    );
+  );
   end component SRAM_controller;
 
   component quad_hex_driver is
@@ -81,8 +76,9 @@ architecture rtl of top_entity is
 
   component key_counter is
       port(
-          I_CLK_50MHZ    : in  std_logic;
+          I_CLK_50MHZ     : in  std_logic;
           I_SYSTEM_RST    : in  std_logic;
+          ADDR            : in std_logic;
           I_KEYPAD_ROW_1  : in  std_logic;
           I_KEYPAD_ROW_2  : in  std_logic;
           I_KEYPAD_ROW_3  : in  std_logic;
@@ -93,10 +89,10 @@ architecture rtl of top_entity is
           O_KEYPAD_COL_3  : out std_logic;
           O_KEYPAD_COL_4  : out std_logic;
           OP_MODE         : out std_logic;
-          H_KEY_OUT  : out std_logic;
-          L_KEY_OUT  : out std_logic;
-          O_KEY_ADDR : out std_logic_vector(17 downto 0);
-          KEY_DATA_OUT : out std_logic_vector(15 downto 0)
+          H_KEY_OUT       : out std_logic;
+          L_KEY_OUT       : out std_logic;
+          O_KEY_ADDR      : out std_logic_vector(17 downto 0);
+          KEY_DATA_OUT    : out std_logic_vector(15 downto 0)
       );
 
   end component key_counter;
@@ -121,6 +117,7 @@ architecture rtl of top_entity is
   signal h_key_pressed : std_logic;
   signal l_key_pressed : std_logic;
   signal shift_key_pressed : std_logic;
+  signal address_active : std_logic;
 
   -- data signals
   signal sram_data_address : unsigned(17 downto 0);
@@ -171,7 +168,6 @@ architecture rtl of top_entity is
 
   signal program_mode : PROGRAM_ST;
 
-
   begin
 
     ROM_UNIT : ROM
@@ -205,8 +201,6 @@ architecture rtl of top_entity is
         I_RESET_N     => I_RESET_N,
         I_COUNT       => hex_data_in,
         I_DATA_ADDR   => std_logic_vector(hex_data_addr),
-        -- I_COUNT       => i_keypd_data,
-        -- I_DATA_ADDR   => i_keypd_addr(7 downto 0),
         O_DATA_ADDR	  => O_DATA_ADDR,
         O_HEX_N       => O_HEX_N
     );
@@ -215,6 +209,7 @@ architecture rtl of top_entity is
     port map(
         I_CLK_50MHZ => I_CLK_50MHZ,
         I_SYSTEM_RST => I_RESET_N,
+        ADDR => address_active,
         I_KEYPAD_ROW_1 => I_KEYPAD_ROW_1,
         I_KEYPAD_ROW_2 => I_KEYPAD_ROW_2,
         I_KEYPAD_ROW_3 => I_KEYPAD_ROW_3,
@@ -250,12 +245,12 @@ architecture rtl of top_entity is
 
  end process ONE_HZ_CLOCK;
 
- SRAM_COUNTER : process (I_CLK_50MHZ, I_RESET_N)
-      begin
-          if(rising_edge(I_CLK_50MHZ)) then
-
-          end if;
-  end process SRAM_COUNTER;
+ -- SRAM_COUNTER : process (I_CLK_50MHZ, I_RESET_N)
+ --      begin
+ --          if(rising_edge(I_CLK_50MHZ)) then
+ --
+ --          end if;
+ --  end process SRAM_COUNTER;
 
     CONTROL_STATE : process(I_CLK_50MHZ, I_RESET_N)
         begin
@@ -293,8 +288,10 @@ architecture rtl of top_entity is
                         if (h_key_pressed = '1') then
                            case( program_mode ) is
                              when SRAM_ADDR_MD =>
+                                 address_active <= '0';
                                  program_mode <= SRAM_DATA_MD;
                              when SRAM_DATA_MD =>
+                                 address_active <= '1';
                                  program_mode <= SRAM_ADDR_MD;
                            end case;
                         end if;
@@ -353,10 +350,15 @@ architecture rtl of top_entity is
                         if (I_RESET_N = '1') then
                             i_keypd_data <= (others  => '0');
                             i_keypd_addr <= (others  => '0');
-                             -- input_data_addr <= (others => '0');
+                            address_active <= '0';
                         end if;
 
-                        hex_data_in       <= out_data_signal;
+                        case(address_input) is
+                          when '1' =>
+
+                          when '0' =>
+
+                        end case;
 
                         if (count_enable = '1') then
                           if (sram_data_address = "11111111") then
