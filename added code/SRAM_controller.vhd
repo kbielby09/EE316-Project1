@@ -1,4 +1,4 @@
---------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------
 -- Filename     : seven_seg_driver.vhd
 -- Author       : Kyle Bielby
 -- Date Created : 2021-25-01
@@ -103,14 +103,14 @@ begin
                      current_state <= READ1;
                    end if;
                  end if;
-                 when READ1 =>
-                     current_state <= READ2;
-                 when READ2 =>
-                     current_state <= READY;
-                 when WRITE1 =>
-                     current_state <= WRITE2;
-                 when WRITE2 =>
-                     current_state <= READY;
+            when READ1 =>
+                current_state <= READ2;
+            when READ2 =>
+                current_state <= READY;
+            when WRITE1 =>
+                current_state <= WRITE2;
+            when WRITE2 =>
+                current_state <= READY;
          end case;
      end if;
  end process STATE_CHANGE;

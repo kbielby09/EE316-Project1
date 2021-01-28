@@ -108,10 +108,6 @@ end component;
   signal l_key_pressed        : std_logic;
   signal shift_key_pressed    : std_logic;
 
-  -- Signal to determine if key was pressed
-  signal key_pressed_signal          : std_logic := '0';
-  signal key_pressed_signal_previous          : std_logic := '0';
-
   -- 4 bit binary representation of keypad state (output of entity)
   signal s_keypad_binary      : std_logic_vector(3 downto 0);
 
@@ -274,59 +270,11 @@ begin
          keys(3) <= I_KEYPAD_ROW_4;
          keys(4) <= I_KEYPAD_ROW_5;
 
-        -- key_pressed_signal <= '0';
-        -- if    (I_KEYPAD_ROW_1 = '1') then
-        --    keys(0) <= '1';
-        --   -- current_key_pressed <= A_KEY;
-        --   -- key_pressed_signal <= '1';
-        --   -- s_keypad_binary <= "1010";             -- A key pressed
-        -- elsif (I_KEYPAD_ROW_2 = '1') then
-        --   current_key_pressed <= ONE_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "0001";             -- 1 key pressed
-        -- elsif (I_KEYPAD_ROW_3 = '1') then
-        --   current_key_pressed <= FOUR_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "0100";             -- 4 key pressed
-        -- elsif (I_KEYPAD_ROW_4 = '1') then
-        --   current_key_pressed <= FIVE_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "0111";             -- 7 key pressed
-        -- elsif (I_KEYPAD_ROW_5 = '1') then
-        --   current_key_pressed <= ZERO_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "0000";             -- 0 key pressed
-        -- else
-        --   s_keypad_binary <= s_keypad_binary;
-        --   key_pressed_signal <= '0';
-        --
-        -- end if;
-
-      -- Col 2
       elsif (s_keypad_state = COL2_READ_STATE) then
          keys(5) <= I_KEYPAD_ROW_1;
          keys(6) <= I_KEYPAD_ROW_2;
          keys(7) <= I_KEYPAD_ROW_3;
          keys(8) <= I_KEYPAD_ROW_4;
-        -- if    (I_KEYPAD_ROW_1 = '1') then
-        --   current_key_pressed <= EIGHT_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "1011";             -- B key pressed
-        -- elsif (I_KEYPAD_ROW_2 = '1') then
-        --   current_key_pressed <= TWO_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "0010";             -- 2 key pressed
-        -- elsif (I_KEYPAD_ROW_3 = '1') then
-        --   current_key_pressed <= FIVE_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "0101";             -- 5 key pressed
-        -- elsif (I_KEYPAD_ROW_4 = '1') then
-        --   current_key_pressed <= EIGHT_KEY
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "1000";             -- 8 key pressed
-        -- else
-        --   s_keypad_binary <= s_keypad_binary;
-        -- end if;
 
       -- Col 3
       elsif (s_keypad_state = COL3_READ_STATE) then
@@ -335,28 +283,6 @@ begin
          keys(11) <= I_KEYPAD_ROW_3;
          keys(12) <= I_KEYPAD_ROW_4;
          keys(13) <= I_KEYPAD_ROW_5;
-        -- if    (I_KEYPAD_ROW_1 = '1') then
-        --   current_key_pressed <= C_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "1100";             -- C key pressed
-        -- elsif (I_KEYPAD_ROW_2 = '1') then
-        --   current_key_pressed <= THREE_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "0011";             -- 3 key pressed
-        -- elsif (I_KEYPAD_ROW_3 = '1') then
-        --   current_key_pressed <= SIX_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "0110";             -- 6 key pressed
-        -- elsif (I_KEYPAD_ROW_4 = '1') then
-        --   current_key_pressed <= NINE_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "1001";             -- 9 key pressed
-        -- elsif (I_KEYPAD_ROW_5 = '1') then
-        --   key_pressed_signal <= '1';
-        --   h_key_pressed <= '1';                  -- H key pressed
-        -- else
-        --   s_keypad_binary <= s_keypad_binary;
-        -- end if;
 
       -- Col 4
       elsif (s_keypad_state = COL4_READ_STATE) then
@@ -365,36 +291,6 @@ begin
          keys(16) <= I_KEYPAD_ROW_3;
          keys(17) <= I_KEYPAD_ROW_4;
          keys(18) <= I_KEYPAD_ROW_5;
-        -- if    (I_KEYPAD_ROW_1 = '1') then
-        --   current_key_pressed <= D_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "1101";
-        -- elsif (I_KEYPAD_ROW_2 = '1') then
-        --   current_key_pressed <= E_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "1110";
-        -- elsif (I_KEYPAD_ROW_3 = '1') then
-        --   current_key_pressed <= F_KEY;
-        --   key_pressed_signal <= '1';
-        --   s_keypad_binary <= "1111";
-        -- elsif (I_KEYPAD_ROW_4 = '1') then
-        --   key_pressed_signal <= '1';
-        --   shift_key_pressed <= '1';
-        -- elsif (I_KEYPAD_ROW_5 = '1') then
-        --   key_pressed_signal <= '1';
-        --   l_key_pressed <= '1';
-        -- else
-        --   if (key_pressed_signal = '1') then
-        --     KEY_PRESSED <= key_pressed_signal;
-        --   else
-        --     KEY_PRESSED <= '0';
-        --   end if;
-        --   s_keypad_binary <= s_keypad_binary;
-        -- end if;
-      -- else
-
-        --
-        -- s_keypad_binary   <= s_keypad_binary;
       end if;
     end if;
   end process KEYPAD_TO_BINARY;
@@ -417,9 +313,9 @@ begin
   begin
     if(rising_edge(I_CLK_50MHZ)) then
      if (to_integer(unsigned(keys_edge)) = 0 or
-      keys_edge(13) = '1' or
-       keys_edge(17) = '1' or
-        keys_edge(18) = '1') then
+         keys_edge(13) = '1' or
+         keys_edge(17) = '1' or
+         keys_edge(18) = '1') then
          KEY_PRESSED <= '0';
      else
        KEY_PRESSED <= '1';
@@ -485,7 +381,8 @@ begin
   O_KEYPAD_COL_3          <= s_keypad_col_3;
   O_KEYPAD_COL_4          <= s_keypad_col_4;
   O_KEYPAD_BINARY         <= s_keypad_binary;
-
+  L_KEY_OUT               <= l_key_pressed;
+  H_KEY_OUT               <= h_key_pressed;
   SHIFT_PRESSED           <= shift_key_pressed;
   ------------------------------------------------------------------------------
 end architecture rtl;
