@@ -109,7 +109,7 @@ architecture rtl of top_entity is
   -- ROM initialization signal
   signal rom_initialize    : std_logic := '0';
   signal rom_data          : std_logic_vector(15 downto 0);
-  signal init_data_addr    : unsigned(7 downto 0) := (others => '1');
+  signal init_data_addr    : unsigned(7 downto 0) := "11111110";
   -- signal rom_write         : unsigned(1 downto 0) := "11";
   signal rom_write         : unsigned(21 downto 0) := (others => '1');
   signal init_count        : std_logic := '0';
@@ -237,11 +237,13 @@ architecture rtl of top_entity is
          -- if(I_RESET_N = '0') then
          --    one_hz_counter_signal <= (others => '0');
          -- end if;
-         if (controller_state = INIT and rom_write = "101111101011110101") then
-             count_enable <= '1';
-           else
-             count_enable <= '0';
-
+         if (controller_state = INIT ) then
+             if (rom_write = "10") then
+               count_enable <= '1';
+            else
+                count_enable <= '0';
+             end if;
+             -- count_enable <= '1';
          end if;
 
          one_hz_counter_signal <= one_hz_counter_signal + 1;
@@ -315,22 +317,19 @@ architecture rtl of top_entity is
                 sram_data         <= (others  => '0');
                 sram_data_address <= (others  => '0');
                 rom_initialize    <= '0';
-                init_data_addr    <= (others  => '0');
+                init_data_addr    <= (others  => '1');
             elsif (rising_edge(I_CLK_50MHZ)) then
                 case controller_state is
                     when INIT =>
                         RW <= '0';
 
-                        sram_data_address(7 downto 0) <= init_data_addr - 1;
+                        sram_data_address(7 downto 0) <= init_data_addr;
                         sram_data     <= rom_data;
-                        hex_data_in   <= rom_data;
-                        hex_data_addr <= init_data_addr;
 
                         rom_write <= rom_write + 1;
 
-                        if (rom_write = "101111101011110000") then
-                        -- if (one_hz_counter_signal = "10111110101111000001111111") then
-                            -- rom_write <= (others => '0');
+                        if (rom_write = "110") then
+                            rom_write <= (others => '0');
                             init_data_addr <= init_data_addr + 1;
                             if (init_data_addr = "11111111") then
                                 init_data_addr <= (others => '0');
