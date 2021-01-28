@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- Filename     : SRAM_controller.vhd
--- Author       : Kyle Bielby & Joseph Drahos
+-- Author       : Joseph Drahos
 -- Date Created : 2021-1-14
 -- Last Revised : 2021-1-25
 -- Project      : EE316 Project 1
@@ -112,7 +112,23 @@ architecture rtl of SRAM_controller is
   signal data_tofrom_SRAM : std_logic_vector(7 downto 0);
   
 begin
-  
+  ------------------------------------------------------------------------------
+  -- Process Name     : SRAM_Controller_FSM
+  -- Sensitivity List : I_CLK_50MHZ    	: 100 MHz global clock (1 bit)
+  --                    MEM_RESET    	: Global Reset line (1 bit)
+  --			R_W		: Read/Write State input (1 bit)
+  --			IN_DATA		: Input data (16 bits)
+  --			IN_DATA_ADDRESS	: SRAM data address 
+  -- Useful Outputs   : WE 		: Write Enable SRAM Input (1 bit)
+  --			CE		: Chip Enable SRAM Input (1 bit)
+  --			OE		: Output Enable SRAM Input (1 bit)
+  --			LB		: Lower-byte Control SRAM Input (1 bit)
+  --			UB 		: Upper-byte Control SRAM Input (1 bit)
+  --   			BUSY		: SRAM Busy signal output (1 bit)
+  --			
+  -- Description      : Finite State Machine Logic for SRAM Controller
+  --			Changes between 6 states: Init, Ready, Read1, Read2, Write1, Write2
+  ------------------------------------------------------------------------------
   SRAM_Controller_FSM : process(I_CLK_50MHZ, MEM_RESET, R_W, IN_DATA, IN_DATA_ADDR)
 		begin
 			if rising_edge(I_CLK_50MHZ) then
@@ -212,21 +228,6 @@ begin
 			end if;
 		end process SRAM_Controller_FSM;
 
-  OUT_DATA_ADR <= IN_DATA_ADDR;
-
-------------------------------------------------------------------------------
-  -- Process Name     : REFRESH_DIGITS
-  -- Sensitivity List : I_CLK_100MHZ    : 100 MHz global clock
-  --
-  -- Useful Outputs   : segment_select : Gives the segment section that is to be illuminated
-  --                  : digit_select : selects the digit to illuminate
-  --                    (active high enable logic)
-  -- Description      : illuminates the desired segment and digit that is to be displayed
-  ------------------------------------------------------------------------------
-  ------------------------------------------------------------------------------
-
-
-
-  -- send signals to output ports
+  OUT_DATA_ADR <= IN_DATA_ADDR; --redirects SRAM address
 
 end architecture rtl;
