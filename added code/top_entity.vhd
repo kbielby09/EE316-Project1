@@ -107,10 +107,12 @@ architecture rtl of top_entity is
   end component ROM;
 
   -- ROM initialization signal
-  signal rom_initialize  : std_logic := '0';
-  signal rom_data        : std_logic_vector(15 downto 0);
-  signal init_data_addr  : unsigned(7 downto 0);
-  signal rom_write       : unsigned(1 downto 0) := "00";
+  signal rom_initialize    : std_logic := '0';
+  signal rom_data          : std_logic_vector(15 downto 0);
+  signal init_data_addr    : unsigned(7 downto 0) := (others => '1');
+  -- signal rom_write         : unsigned(1 downto 0) := "11";
+  signal rom_write         : unsigned(21 downto 0) := (others => '1');
+  signal init_count        : std_logic := '0';
 
   -- keypad signals
   signal i_keypd_data : std_logic_vector(15 downto 0);
@@ -134,7 +136,6 @@ architecture rtl of top_entity is
   signal input_data            : unsigned(15 downto 0);
   signal RW                    : std_logic;
 
-  -- signal dio_data : std_logic_vector(15 downto 0);
   signal tri_state : std_logic;
   signal ce_signal : std_logic;
   signal we_signal : std_logic;
@@ -229,10 +230,18 @@ architecture rtl of top_entity is
 
     ONE_HZ_CLOCK : process (I_CLK_50MHZ, I_RESET_N)
      begin
+       if(I_RESET_N = '0') then
+          one_hz_counter_signal <= (others => '0');
 
-     if (rising_edge(I_CLK_50MHZ)) then
-         if(I_RESET_N = '1') then
-            one_hz_counter_signal <= (others => '0');
+       elsif (rising_edge(I_CLK_50MHZ)) then
+         -- if(I_RESET_N = '0') then
+         --    one_hz_counter_signal <= (others => '0');
+         -- end if;
+         if (controller_state = INIT and rom_write = "101111101011110101") then
+             count_enable <= '1';
+           else
+             count_enable <= '0';
+
          end if;
 
          one_hz_counter_signal <= one_hz_counter_signal + 1;
@@ -248,10 +257,10 @@ architecture rtl of top_entity is
 
     CONTROL_STATE : process(I_CLK_50MHZ, I_RESET_N)
         begin
-            if (rising_edge(I_CLK_50MHZ)) then
-              if (rom_initialize = '0') then
-                  controller_state <= INIT;
-              end if;
+            if (I_RESET_N = '0') then
+                controller_state <= INIT;
+                address_active <= '0';
+            elsif (rising_edge(I_CLK_50MHZ)) then
               case( controller_state ) is
                 when INIT =>
                     LEDG0 <= '1'; -- TODO change to 0
@@ -261,9 +270,7 @@ architecture rtl of top_entity is
 
                 when OPERATION =>
                     LEDG0 <= '0';
-                    if (I_RESET_N = '1') then
-                        controller_state <= INIT;
-                    elsif (shift_key_pressed = '1') then
+                    if (shift_key_pressed = '1') then
                         controller_state <= PROGRAMMING;
                     elsif (shift_key_pressed = '0') then
                         if (l_key_pressed = '1') then
@@ -279,10 +286,10 @@ architecture rtl of top_entity is
                 when PROGRAMMING =>
                     LEDG0 <= '0'; -- TODO change to 1
 
-                    if (I_RESET_N = '1') then
-                       controller_state <= INIT;
-                       address_active <= '0';
-                    elsif (shift_key_pressed = '1') then
+                    -- if (I_RESET_N = '0') then
+                       -- controller_state <= INIT;
+                       -- address_active <= '0';
+                    if (shift_key_pressed = '1') then
                         controller_state <= OPERATION;
                     elsif (shift_key_pressed = '0') then
                         if (h_key_pressed = '1') then
@@ -302,20 +309,28 @@ architecture rtl of top_entity is
 
     STATE_FUNCTION : process(I_CLK_50MHZ, I_RESET_N)
         begin
-            if (rising_edge(I_CLK_50MHZ)) then
+            if (I_RESET_N = '0') then
+                sram_data_address <= (others  => '0');
+                hex_data_addr     <= (others  => '0');
+                sram_data         <= (others  => '0');
+                sram_data_address <= (others  => '0');
+                rom_initialize    <= '0';
+                init_data_addr    <= (others  => '0');
+            elsif (rising_edge(I_CLK_50MHZ)) then
                 case controller_state is
                     when INIT =>
                         RW <= '0';
 
-                        sram_data_address(7 downto 0) <= init_data_addr;
+                        sram_data_address(7 downto 0) <= init_data_addr - 1;
                         sram_data     <= rom_data;
                         hex_data_in   <= rom_data;
                         hex_data_addr <= init_data_addr;
 
                         rom_write <= rom_write + 1;
 
-                        if (rom_write = "11") then
-                            rom_write <= (others => '0');
+                        if (rom_write = "101111101011110000") then
+                        -- if (one_hz_counter_signal = "10111110101111000001111111") then
+                            -- rom_write <= (others => '0');
                             init_data_addr <= init_data_addr + 1;
                             if (init_data_addr = "11111111") then
                                 init_data_addr <= (others => '0');
@@ -326,10 +341,10 @@ architecture rtl of top_entity is
                     when OPERATION =>
                       RW <= '1';
 
-                      if (I_RESET_N = '1') then
-                          sram_data_address <= (others  => '0');
-                          hex_data_addr     <= (others  => '0');
-                      end if;
+                      -- if (I_RESET_N = '0') then
+                      --     sram_data_address <= (others  => '0');
+                      --     hex_data_addr     <= (others  => '0');
+                      -- end if;
 
                       hex_data_in       <= out_data_signal;
 
