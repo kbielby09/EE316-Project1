@@ -234,10 +234,11 @@ architecture rtl of top_entity is
              end if;
            end if;
 
-            one_hz_counter_signal <= one_hz_counter_signal + 1;
+
 
         if (controller_state = OPERATION) then
-          if (one_hz_counter_signal = "10111110101111000001111111") then  -- check for 1 Hz clock (count to 50 million)
+          one_hz_counter_signal <= one_hz_counter_signal + 1;
+          if (one_hz_counter_signal = "10111110101111000001111111") then
                count_enable <= '1';
                one_hz_counter_signal <= (others => '0');
            else
@@ -261,7 +262,8 @@ architecture rtl of top_entity is
               case( controller_state ) is
                 when INIT =>
                     LEDG0 <= '0';
-                    if (rom_initialize = '1') then
+
+                    if ( rom_initialize = '1') then
                         controller_state <= OPERATION;
                     end if;
 
@@ -293,10 +295,6 @@ architecture rtl of top_entity is
                         controller_state <= OPERATION;
                         counter_paused   <= '1';
                     elsif (shift_key_pressed = '0') then
-                        -- if (l_key_pressed = '1') then
-                        --
-                        -- end if;
-                        --
                         if (h_key_pressed = '1') then
                            case( program_mode ) is
                              when SRAM_ADDR_MD =>
@@ -325,19 +323,26 @@ architecture rtl of top_entity is
                     when INIT =>
                         RW <= '0';
 
-                        sram_data_address <= init_data_addr;
-                        sram_data         <= rom_data;
-                        hex_data_in       <= rom_data;
-                        hex_data_addr     <= init_data_addr(7 downto 0);
+                        -- if (init_data_addr /= "000000000011111111") then
+                        if (init_data_addr /= "000000000100000000") then
+                          sram_data_address <= init_data_addr;
+                          sram_data         <= rom_data;
+                          hex_data_in       <= rom_data;
+                          hex_data_addr     <= init_data_addr(7 downto 0);
+                        end if;
+
+
                         rom_write <= rom_write + 1;
                         if (rom_write = "110000110101000000") then
                             rom_write <= (others => '0');  -- CDL=> May need to remove later
                             init_data_addr <= init_data_addr + 1;
 
                             if (init_data_addr = "000000000011111111") then
-                                init_data_addr <= (others => '0');
-                                hex_data_addr <= (others => '0');
-                                rom_initialize <= '1';
+                                  -- init_data_addr <= (others => '0');
+                                  -- hex_data_addr <= (others => '0');
+
+                                  rom_initialize <= '1';
+
                             end if;
                          end if;
 
