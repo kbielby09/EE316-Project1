@@ -243,6 +243,8 @@ architecture rtl of top_entity is
            else
                count_enable <= '0';
            end if;
+        elsif (controller_state = PROGRAMMING) then
+            count_enable <= l_key_pressed;
         end if;
         count_enable_1 <= count_enable;
      end if;
@@ -291,6 +293,10 @@ architecture rtl of top_entity is
                         controller_state <= OPERATION;
                         counter_paused   <= '1';
                     elsif (shift_key_pressed = '0') then
+                        -- if (l_key_pressed = '1') then
+                        --
+                        -- end if;
+                        --
                         if (h_key_pressed = '1') then
                            case( program_mode ) is
                              when SRAM_ADDR_MD =>
@@ -372,10 +378,14 @@ architecture rtl of top_entity is
                     when PROGRAMMING =>
                         RW <= '0';
 
-                        sram_data_address <= unsigned(i_keypd_addr);
                         hex_data_addr     <= unsigned(i_keypd_addr(7 downto 0));
-                        sram_data         <= std_logic_vector(i_keypd_data);
                         hex_data_in       <= std_logic_vector(i_keypd_data);
+
+                        if (l_key_pressed = '1') then
+                          sram_data_address <= unsigned(i_keypd_addr);
+                          sram_data         <= std_logic_vector(i_keypd_data);
+                        end if;
+
 
                 end case;
             end if;
