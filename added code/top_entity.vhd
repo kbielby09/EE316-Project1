@@ -1,4 +1,5 @@
 -- Code your design here
+-- TODO fix indexing with last index of SRAM data
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -109,9 +110,11 @@ architecture rtl of top_entity is
   -- ROM initialization signal
   signal rom_initialize    : std_logic := '0';
   signal rom_data          : std_logic_vector(15 downto 0);
-  signal init_data_addr    : unsigned(7 downto 0) := "11111110";
+  signal init_data_addr    : unsigned(17 downto 0) := (others => '1');
+  signal rom_address_change : std_logic;
+  signal ticks_aft_change : unsigned(5 downto 0);
   -- signal rom_write         : unsigned(1 downto 0) := "11";
-  signal rom_write         : unsigned(21 downto 0) := (others => '1');
+  signal rom_write         : unsigned(17 downto 0) := (others => '0');
   signal init_count        : std_logic := '0';
 
   -- keypad signals
@@ -131,6 +134,7 @@ architecture rtl of top_entity is
   signal out_data_signal       : std_logic_vector(15 downto 0);
   signal address_signal        : std_logic_vector(7 downto 0);
   signal count_enable          : std_logic;
+  signal count_enable_1        : std_logic;
   signal one_hz_counter_signal : unsigned(25 downto 0) := (others => '0');
   signal input_data_addr       : unsigned(7 downto 0) := (others => '0');
   signal input_data            : unsigned(15 downto 0);
@@ -174,7 +178,7 @@ architecture rtl of top_entity is
 
     ROM_UNIT : ROM
     port map(
-        address	=> std_logic_vector(init_data_addr),
+        address	=> std_logic_vector(init_data_addr(7 downto 0)),
         clock	=> I_CLK_50MHZ,
         q	=> rom_data
     );
@@ -183,7 +187,7 @@ architecture rtl of top_entity is
     port map(
         I_CLK_50MHZ => I_CLK_50MHZ,
         I_SYSTEM_RST_N => I_RESET_N,
-        COUNT_EN => count_enable,
+        COUNT_EN => count_enable_1,
         RW => RW,
         DIO => DIO,
         CE_N => CE_N,
@@ -232,27 +236,30 @@ architecture rtl of top_entity is
      begin
        if(I_RESET_N = '0') then
           one_hz_counter_signal <= (others => '0');
+          count_enable          <= '0';
 
        elsif (rising_edge(I_CLK_50MHZ)) then
-         -- if(I_RESET_N = '0') then
-         --    one_hz_counter_signal <= (others => '0');
-         -- end if;
          if (controller_state = INIT ) then
-             if (rom_write = "10") then
+             -- if (ticks_aft_change = "11" and rom_address_change = '1') then
+             if (rom_write = "110000110101000000") then  --101
                count_enable <= '1';
             else
                 count_enable <= '0';
              end if;
              -- count_enable <= '1';
-         end if;
+           end if;
 
          one_hz_counter_signal <= one_hz_counter_signal + 1;
-         if (one_hz_counter_signal = "10111110101111000001111111") then  -- check for 1 Hz clock (count to 50 million)
-             count_enable <= '1';
-             one_hz_counter_signal <= (others => '0');
-         else
-             count_enable <= '0';
-         end if;
+        if (controller_state = OPERATION) then
+          if (one_hz_counter_signal = "10111110101111000001111111") then  -- check for 1 Hz clock (count to 50 million)
+          -- if (one_hz_counter_signal = "10111110101111000001111111") then  -- check for 1 Hz clock (count to 50 million)
+               count_enable <= '1';
+               one_hz_counter_signal <= (others => '0');
+           else
+               count_enable <= '0';
+           end if;
+        end if;
+        count_enable_1 <= count_enable;
      end if;
 
  end process ONE_HZ_CLOCK;
@@ -312,30 +319,38 @@ architecture rtl of top_entity is
     STATE_FUNCTION : process(I_CLK_50MHZ, I_RESET_N)
         begin
             if (I_RESET_N = '0') then
-                sram_data_address <= (others  => '0');
+                -- sram_data_address <= (others  => '0');
                 hex_data_addr     <= (others  => '0');
                 sram_data         <= (others  => '0');
-                sram_data_address <= (others  => '0');
+                rom_write         <= (others  => '0');
                 rom_initialize    <= '0';
-                init_data_addr    <= (others  => '1');
+                init_data_addr    <= (others  => '1');  -- 18 bit
+
             elsif (rising_edge(I_CLK_50MHZ)) then
                 case controller_state is
                     when INIT =>
                         RW <= '0';
 
-                        sram_data_address(7 downto 0) <= init_data_addr;
-                        sram_data     <= rom_data;
-
+                        sram_data_address <= init_data_addr;
+                        sram_data         <= rom_data;
+                        hex_data_in       <= rom_data;
+                        hex_data_addr     <= init_data_addr(7 downto 0);
+                        -- ticks_aft_change <= ticks_aft_change + 1;
                         rom_write <= rom_write + 1;
-
-                        if (rom_write = "110") then
-                            rom_write <= (others => '0');
+                        if (rom_write = "110000110101000000") then
+                            rom_write <= (others => '0');  -- CDL=> May need to remove later
                             init_data_addr <= init_data_addr + 1;
-                            if (init_data_addr = "11111111") then
+                            -- rom_address_change <= '1';
+                            -- ticks_aft_change <= (others => '0');
+
+                            if (init_data_addr = "000000000011111111") then
                                 init_data_addr <= (others => '0');
+                                hex_data_addr <= (others => '0');
                                 rom_initialize <= '1';
                             end if;
-                        end if;
+                          -- else
+                            -- rom_address_change <= '0';
+                         end if;
 
                     when OPERATION =>
                       RW <= '1';
@@ -356,12 +371,24 @@ architecture rtl of top_entity is
                         case( count_direction ) is
 
                           when COUNT_UP =>
-                              sram_data_address <= sram_data_address + 1;
-                              hex_data_addr     <= hex_data_addr     + 1;
+                              if (sram_data_address(7 downto 0) = "11111111") then
+                                  sram_data_address <= (others  => '0');
+                                  hex_data_addr     <= (others  => '0');
+                                else
+                                  sram_data_address <= sram_data_address + 1;
+                                  hex_data_addr     <= hex_data_addr     + 1;
+                              end if;
+
 
                           when COUNT_DOWN =>
-                              sram_data_address <= sram_data_address - 1;
-                              hex_data_addr     <= hex_data_addr     - 1;
+                              if (sram_data_address(7 downto 0) = "00000000") then
+                                sram_data_address(7 downto 0) <= (others  => '1');
+                                hex_data_addr     <= (others  => '1');
+                              else
+                                sram_data_address <= sram_data_address - 1;
+                                hex_data_addr     <= hex_data_addr     - 1;
+                              end if;
+
                         end case;
                       end if;
 
