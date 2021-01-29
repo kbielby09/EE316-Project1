@@ -177,7 +177,7 @@ quad_hex_driver: process(I_CLK_50MHZ, I_RESET_N) begin
     end case;
 
 		case(I_DATA_ADDR(3 downto 0)) is		--case for rightmost four bits in 8 bit data
-        when "0000"             => -- '0'			--write to appropriate section of buffer
+        when "0000"             => -- '0'			--write to appropriate section of buffers
           O_DATA_ADDR_BUF(6 downto 0) <= "1000000";
         when "0001"             => -- '1'
           O_DATA_ADDR_BUF(6 downto 0) <= "1111001";
