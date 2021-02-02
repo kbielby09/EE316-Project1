@@ -1,6 +1,3 @@
--- Code your design here
--- TODO fix indexing with last index of SRAM data
--- TODO implement save button (l key) during programming mode
 
 library IEEE;
 use IEEE.std_logic_1164.all;
@@ -323,7 +320,6 @@ architecture rtl of top_entity is
                     when INIT =>
                         RW <= '0';
 
-                        -- if (init_data_addr /= "000000000011111111") then
                         if (init_data_addr /= "000000000100000000") then
                           sram_data_address <= init_data_addr;
                           sram_data         <= rom_data;
@@ -338,11 +334,7 @@ architecture rtl of top_entity is
                             init_data_addr <= init_data_addr + 1;
 
                             if (init_data_addr = "000000000011111111") then
-                                  -- init_data_addr <= (others => '0');
-                                  -- hex_data_addr <= (others => '0');
-
                                   rom_initialize <= '1';
-
                             end if;
                          end if;
 
@@ -352,15 +344,11 @@ architecture rtl of top_entity is
                       hex_data_in       <= out_data_signal;
 
                       if (count_enable = '1') then
-                        if (sram_data_address = "11111111") then
-                            sram_data_address <= (others  => '0');
-                            hex_data_addr     <= (others  => '0');
-                        end if;
 
                         case( count_direction ) is
 
                           when COUNT_UP =>
-                              if (sram_data_address(7 downto 0) = "11111111") then
+                              if (sram_data_address(7 downto 0) = "11111111" and counter_paused = '0') then
                                   sram_data_address <= (others  => '0');
                                   hex_data_addr     <= (others  => '0');
                                 elsif (counter_paused = '0') then
@@ -369,7 +357,9 @@ architecture rtl of top_entity is
                               end if;
 
                           when COUNT_DOWN =>
-                              if (sram_data_address(7 downto 0) = "00000000") then
+
+
+                              if (sram_data_address(7 downto 0) = "00000000" and counter_paused = '0') then
                                 sram_data_address(7 downto 0) <= (others  => '1');
                                 hex_data_addr     <= (others  => '1');
                               elsif (counter_paused = '0') then
@@ -382,15 +372,19 @@ architecture rtl of top_entity is
 
                     when PROGRAMMING =>
                         RW <= '0';
+                        if (shift_key_pressed = '1') then
+                            hex_data_addr     <= (others => '0');
+                            sram_data_address <= (others => '0');
+                            hex_data_in       <= (others => '0');
+                        elsif (shift_key_pressed = '0') then
+                          hex_data_addr     <= unsigned(i_keypd_addr(7 downto 0));
+                          hex_data_in       <= std_logic_vector(i_keypd_data);
 
-                        hex_data_addr     <= unsigned(i_keypd_addr(7 downto 0));
-                        hex_data_in       <= std_logic_vector(i_keypd_data);
-
-                        if (l_key_pressed = '1') then
-                          sram_data_address <= unsigned(i_keypd_addr);
-                          sram_data         <= std_logic_vector(i_keypd_data);
+                          if (l_key_pressed = '1') then
+                            sram_data_address <= unsigned(i_keypd_addr);
+                            sram_data         <= std_logic_vector(i_keypd_data);
+                          end if;
                         end if;
-
 
                 end case;
             end if;
