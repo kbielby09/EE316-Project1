@@ -1,11 +1,27 @@
+--------------------------------------------------------------------------------
+-- Filename     : top_entity.vhd
+-- Author       : Kyle Bielby
+-- Date Created : 2021-02-04
+-- Last Revised : 2021-02-04
+-- Project      : EE 316 Project 1
+-- Description  : Top entity of SRAM  controller used to implement all modular
+--                entities
+--
+--------------------------------------------------------------------------------
 
+-----------------
+--  Libraries  --
+-----------------
 library IEEE;
 use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+--------------
+--  Entity  --
+--------------
 entity top_entity is
     port(
-        -- Clocks and base signals
+        -- Clock and reset Signals
         I_RESET_N   : in std_logic;
         I_CLK_50MHZ : in std_logic;
 
@@ -22,12 +38,12 @@ entity top_entity is
         O_KEYPAD_COL_3  : out std_logic;
         O_KEYPAD_COL_4  : out std_logic;
 
-        -- hex display outputs
+        -- Seven segment display outputs
         O_DATA_ADDR	      : out Std_logic_Vector(13 downto 0);
         O_HEX_N           : out Std_logic_Vector(27 downto 0);
 
         -- SRAM outputs
-        SRAM_DATA_ADR : out std_logic_vector(17 downto 0);      -- segments that are to be illuminated for the seven segment hex
+        SRAM_DATA_ADR : out std_logic_vector(17 downto 0);
         DIO : inout std_logic_vector(15 downto 0);
         CE_N : out std_logic;
         WE_N    : out std_logic;     -- signal for writing to SRAM
@@ -35,13 +51,22 @@ entity top_entity is
         UB    : out std_logic;
         LB    : out std_logic;
 
+        -- LED output
         LEDG0 : out std_logic
 
     );
   end top_entity;
 
+--------------------------------
+--  Architecture Declaration  --
+--------------------------------
 architecture rtl of top_entity is
 
+  ----------------
+  -- COMPONENTS --
+  ----------------
+
+  -- SRAM controlller
   component SRAM_controller is
   port
   (
@@ -62,6 +87,7 @@ architecture rtl of top_entity is
   );
   end component SRAM_controller;
 
+  -- seven segment display driver
   component quad_hex_driver is
       port
       (
@@ -74,6 +100,7 @@ architecture rtl of top_entity is
       );
   end component quad_hex_driver;
 
+  -- Key counter/keypad driver
   component key_counter is
       port(
           I_CLK_50MHZ     : in  std_logic;
@@ -96,6 +123,7 @@ architecture rtl of top_entity is
       );
   end component key_counter;
 
+  -- ROM driver (auto generated signature)
   component ROM is
   	port
   	(
@@ -104,6 +132,10 @@ architecture rtl of top_entity is
   		q		      : out std_logic_vector (15 downto 0)
   	);
   end component ROM;
+
+  -------------
+  -- SIGNALS --
+  -------------
 
   -- ROM initialization signal
   signal rom_initialize     : std_logic := '0';
@@ -145,11 +177,15 @@ architecture rtl of top_entity is
 
   signal controller_state : CONTROL_ST := INIT;
 
+  -- Programming mode states
   type PROGRAM_ST is (
       SRAM_ADDR_MD,
       SRAM_DATA_MD
   );
 
+  signal program_mode : PROGRAM_ST := SRAM_ADDR_MD;
+
+  -- Counting mode states
   type COUNT_MODE is(
       COUNT_UP,
       COUNT_DOWN
@@ -157,35 +193,36 @@ architecture rtl of top_entity is
 
   signal count_direction : COUNT_MODE;
 
-  signal program_mode : PROGRAM_ST := SRAM_ADDR_MD;
-
   begin
 
+    -- ROM driver port map
     ROM_UNIT : ROM
     port map(
         address	=> std_logic_vector(init_data_addr(7 downto 0)),
-        clock	=> I_CLK_50MHZ,
-        q	=> rom_data
+        clock	  => I_CLK_50MHZ,
+        q	      => rom_data
     );
 
+    -- SRAM  controller port map
     SRAM : SRAM_controller
     port map(
-        I_CLK_50MHZ => I_CLK_50MHZ,
+        I_CLK_50MHZ    => I_CLK_50MHZ,
         I_SYSTEM_RST_N => I_RESET_N,
-        COUNT_EN => count_enable_1,
-        RW => RW,
-        DIO => DIO,
-        CE_N => CE_N,
-        WE_N => WE_N,
-        OE => OE,
-        UB => UB,
-        LB => LB,
-        IN_DATA => sram_data,
-        IN_DATA_ADDR => std_logic_vector(sram_data_address),
-        OUT_DATA => out_data_signal,
-        OUT_DATA_ADR => SRAM_DATA_ADR
+        COUNT_EN       => count_enable_1,
+        RW             => RW,
+        DIO            => DIO,
+        CE_N           => CE_N,
+        WE_N           => WE_N,
+        OE             => OE,
+        UB             => UB,
+        LB             => LB,
+        IN_DATA        => sram_data,
+        IN_DATA_ADDR   => std_logic_vector(sram_data_address),
+        OUT_DATA       => out_data_signal,
+        OUT_DATA_ADR   => SRAM_DATA_ADR
     );
 
+    -- Seven sement driver port map
     HEX_DISP : quad_hex_driver
     port map(
         I_CLK_50MHZ   => I_CLK_50MHZ,
@@ -196,11 +233,12 @@ architecture rtl of top_entity is
         O_HEX_N       => O_HEX_N
     );
 
+    -- Key counter/keypad driver port map
     KEYPAD : key_counter
     port map(
-        I_CLK_50MHZ => I_CLK_50MHZ,
-        I_SYSTEM_RST => I_RESET_N,
-        ADDR => address_active,
+        I_CLK_50MHZ    => I_CLK_50MHZ,
+        I_SYSTEM_RST   => I_RESET_N,
+        ADDR           => address_active,
         I_KEYPAD_ROW_1 => I_KEYPAD_ROW_1,
         I_KEYPAD_ROW_2 => I_KEYPAD_ROW_2,
         I_KEYPAD_ROW_3 => I_KEYPAD_ROW_3,
@@ -210,50 +248,81 @@ architecture rtl of top_entity is
         O_KEYPAD_COL_2 => O_KEYPAD_COL_2,
         O_KEYPAD_COL_3 => O_KEYPAD_COL_3,
         O_KEYPAD_COL_4 => O_KEYPAD_COL_4,
-        OP_MODE => shift_key_pressed,
-        H_KEY_OUT => h_key_pressed,
-        L_KEY_OUT => l_key_pressed,
-        O_KEY_ADDR => i_keypd_addr,
-        KEY_DATA_OUT => i_keypd_data
+        OP_MODE        => shift_key_pressed,
+        H_KEY_OUT      => h_key_pressed,
+        L_KEY_OUT      => l_key_pressed,
+        O_KEY_ADDR     => i_keypd_addr,
+        KEY_DATA_OUT   => i_keypd_data
     );
 
+    ------------------------------------------------------------------------------
+    -- Process Name     : ONE_HZ_CLOCK
+    --
+    -- Sensitivity List : I_CLK_50MHZ    : 50 MHz global clock
+    --                    I_RESET_N      : Global Reset line
+    --
+    -- Useful Outputs   : count_enable   : Enable to allow state change in SRAM
+    --                                     controller
+    --
+    --                  : one_hz_counter_signal : signal used for counter value
+    --
+    -- Description      : One Hz clock counter enable generator used to control
+    --                    SRAM read write operations.
+    ------------------------------------------------------------------------------
     ONE_HZ_CLOCK : process (I_CLK_50MHZ, I_RESET_N)
      begin
        if(I_RESET_N = '0') then
-          one_hz_counter_signal <= (others => '0');
-          count_enable          <= '0';
+           one_hz_counter_signal <= (others => '0');
+           count_enable          <= '0';
        elsif (rising_edge(I_CLK_50MHZ)) then
          if (controller_state = INIT ) then
              if (rom_write = "110000110101000000") then  --101
-               count_enable <= '1';
-            else
-                count_enable <= '0';
+                 count_enable <= '1';
+             else
+                 count_enable <= '0';
              end if;
-           end if;
-
-
+         end if;
 
         if (controller_state = OPERATION) then
-          one_hz_counter_signal <= one_hz_counter_signal + 1;
-          if (one_hz_counter_signal = "10111110101111000001111111") then
-               count_enable <= '1';
-               one_hz_counter_signal <= (others => '0');
-           else
-               count_enable <= '0';
-           end if;
+            one_hz_counter_signal <= one_hz_counter_signal + 1;
+            if (one_hz_counter_signal = "10111110101111000001111111") then
+                count_enable <= '1';
+                one_hz_counter_signal <= (others => '0');
+            else
+                count_enable <= '0';
+            end if;
         elsif (controller_state = PROGRAMMING) then
             count_enable <= l_key_pressed;
         end if;
         count_enable_1 <= count_enable;
      end if;
+    end process ONE_HZ_CLOCK;
+    ----------------------------------------------------------------------------
 
- end process ONE_HZ_CLOCK;
-
+    ----------------------------------------------------------------------------
+    -- Process Name     : KEYPAD_EN_CNTR
+    -- Sensitivity List : I_CLK_50MHZ     : 50 MHz global clock
+    --                    I_RESET_N       : Global Reset line
+    --
+    -- Useful Outputs   : controller_state : The state holder signal for the
+    --                    current state of the sate machine
+    --
+    --                  : address_active : signal to state if address input is
+    --                    to be collected from the keypad driver and written to
+    --                    the seven segment display
+    --
+    --                  : counter_paused : signal used to control the state of
+    --                    the ONE_HZ_CLOCK process
+    --
+    -- Description      : State machine process that is responsible for changing
+    --                    the current state of the controller
+    ----------------------------------------------------------------------------
     CONTROL_STATE : process(I_CLK_50MHZ, I_RESET_N)
         begin
             if (I_RESET_N = '0') then
                 controller_state <= INIT;
                 address_active <= '0';
+                counter_paused <= '0';
             elsif (rising_edge(I_CLK_50MHZ)) then
 
               case( controller_state ) is
@@ -306,7 +375,32 @@ architecture rtl of top_entity is
               end case;
             end if;
     end process CONTROL_STATE;
+    ----------------------------------------------------------------------------
 
+    ----------------------------------------------------------------------------
+    -- Process Name     : STATE_FUNCTION
+    -- Sensitivity List : I_CLK_50MHZ    : 50 MHz global clock
+    --                    I_RESET_N      : Global Reset line
+    --
+    -- Useful Outputs   : hex_data_addr : the SRAM address signal used to
+    --                    display the address on the seven segment display
+    --
+    --                  : sram_data : the data written to the sram controller
+    --
+    --                  : rom_write : the intermediate signal used to transmit
+    --                    data form the ROM to the SRAM
+    --
+    --                  : rom_initialize : the signal used to indicate the SRAM
+    --                    has been initialized with the ROM contents
+    --
+    --                  : init_data_addr : the intermediate signal used to
+    --                    initialize the SRAM
+    --
+    -- Description      : this process uses the current state of the controller
+    --                    state machine to set the signals needed for read and
+    --                    write operations to the SRAM
+    --
+    ----------------------------------------------------------------------------
     STATE_FUNCTION : process(I_CLK_50MHZ, I_RESET_N)
         begin
             if (I_RESET_N = '0') then
@@ -314,65 +408,56 @@ architecture rtl of top_entity is
                 sram_data         <= (others  => '0');
                 rom_write         <= (others  => '0');
                 rom_initialize    <= '0';
-                init_data_addr    <= (others  => '1');  -- 18 bit
+                init_data_addr    <= (others  => '1');
             elsif (rising_edge(I_CLK_50MHZ)) then
                 case controller_state is
                     when INIT =>
                         RW <= '0';
 
                         if (init_data_addr /= "000000000100000000") then
-                          sram_data_address <= init_data_addr;
-                          sram_data         <= rom_data;
-                          hex_data_in       <= rom_data;
-                          hex_data_addr     <= init_data_addr(7 downto 0);
+                            sram_data_address <= init_data_addr;
+                            sram_data         <= rom_data;
+                            hex_data_in       <= rom_data;
+                            hex_data_addr     <= init_data_addr(7 downto 0);
                         end if;
-
 
                         rom_write <= rom_write + 1;
                         if (rom_write = "110000110101000000") then
-                            rom_write <= (others => '0');  -- CDL=> May need to remove later
+                            rom_write <= (others => '0');
                             init_data_addr <= init_data_addr + 1;
 
                             if (init_data_addr = "000000000011111111") then
-                                  hex_data_in   <= (others => '0');
-                                  hex_data_addr <= (others => '0');
-                                  sram_data <= (others => '0');
-                                  sram_data_address <= (others => '0');
-
-                                  rom_initialize <= '1';
+                                hex_data_in   <= (others => '0');
+                                hex_data_addr <= (others => '0');
+                                sram_data <= (others => '0');
+                                sram_data_address <= (others => '0');
+                                rom_initialize <= '1';
                             end if;
                          end if;
 
                     when OPERATION =>
-                      RW <= '1';
+                        RW <= '1';
+                        hex_data_in       <= out_data_signal;
+                        if (count_enable = '1') then
+                          case( count_direction ) is
+                              when COUNT_UP =>
+                                  if (sram_data_address(7 downto 0) = "11111111" and counter_paused = '0') then
+                                      sram_data_address <= (others  => '0');
+                                      hex_data_addr     <= (others  => '0');
+                                  elsif (counter_paused = '0') then
+                                      sram_data_address <= sram_data_address + 1;
+                                      hex_data_addr     <= hex_data_addr     + 1;
+                                  end if;
 
-                      hex_data_in       <= out_data_signal;
-
-                      if (count_enable = '1') then
-
-                        case( count_direction ) is
-
-                          when COUNT_UP =>
-                              if (sram_data_address(7 downto 0) = "11111111" and counter_paused = '0') then
-                                  sram_data_address <= (others  => '0');
-                                  hex_data_addr     <= (others  => '0');
-                                elsif (counter_paused = '0') then
-                                  sram_data_address <= sram_data_address + 1;
-                                  hex_data_addr     <= hex_data_addr     + 1;
-                              end if;
-
-                          when COUNT_DOWN =>
-
-
-                              if (sram_data_address(7 downto 0) = "00000000" and counter_paused = '0') then
-                                sram_data_address(7 downto 0) <= (others  => '1');
-                                hex_data_addr     <= (others  => '1');
-                              elsif (counter_paused = '0') then
-                                sram_data_address <= sram_data_address - 1;
-                                hex_data_addr     <= hex_data_addr     - 1;
-                              end if;
-
-                        end case;
+                              when COUNT_DOWN =>
+                                  if (sram_data_address(7 downto 0) = "00000000" and counter_paused = '0') then
+                                      sram_data_address(7 downto 0) <= (others  => '1');
+                                      hex_data_addr     <= (others  => '1');
+                                  elsif (counter_paused = '0') then
+                                      sram_data_address <= sram_data_address - 1;
+                                      hex_data_addr     <= hex_data_addr     - 1;
+                                  end if;
+                          end case;
                       end if;
 
                     when PROGRAMMING =>
@@ -382,18 +467,17 @@ architecture rtl of top_entity is
                             sram_data_address <= (others => '0');
                             hex_data_in       <= (others => '0');
                         elsif (shift_key_pressed = '0') then
-                          hex_data_addr     <= unsigned(i_keypd_addr(7 downto 0));
-                          hex_data_in       <= std_logic_vector(i_keypd_data);
-
-                          if (l_key_pressed = '1') then
-                            sram_data_address(7 downto 0) <= unsigned(i_keypd_addr(7 downto 0));
-                            sram_data         <= std_logic_vector(i_keypd_data);
-                          end if;
+                            hex_data_addr     <= unsigned(i_keypd_addr(7 downto 0));
+                            hex_data_in       <= std_logic_vector(i_keypd_data);
+                            if (l_key_pressed = '1') then
+                                sram_data_address(7 downto 0) <= unsigned(i_keypd_addr(7 downto 0));
+                                sram_data         <= std_logic_vector(i_keypd_data);
+                            end if;
                         end if;
 
                 end case;
             end if;
     end process STATE_FUNCTION;
-
+    ----------------------------------------------------------------------------
 
   end rtl;
