@@ -27,7 +27,7 @@ entity top_entity is
         O_HEX_N           : out Std_logic_Vector(27 downto 0);
 
         -- SRAM outputs
-        SRAM_DATA_ADR : out std_logic_vector(17 downto 0);
+        SRAM_DATA_ADR : out std_logic_vector(17 downto 0);      -- segments that are to be illuminated for the seven segment hex
         DIO : inout std_logic_vector(15 downto 0);
         CE_N : out std_logic;
         WE_N    : out std_logic;     -- signal for writing to SRAM
@@ -224,7 +224,7 @@ architecture rtl of top_entity is
           count_enable          <= '0';
        elsif (rising_edge(I_CLK_50MHZ)) then
          if (controller_state = INIT ) then
-             if (rom_write = "110000110101000000") then
+             if (rom_write = "110000110101000000") then  --101
                count_enable <= '1';
             else
                 count_enable <= '0';
@@ -265,7 +265,7 @@ architecture rtl of top_entity is
                     end if;
 
                 when OPERATION =>
-                    LEDG0 <= '0';
+                    LEDG0 <= '1';
 
                     if (shift_key_pressed = '1') then
                         controller_state <= PROGRAMMING;
@@ -286,7 +286,7 @@ architecture rtl of top_entity is
                     end if;
 
                 when PROGRAMMING =>
-                    LEDG0 <= '1';
+                    LEDG0 <= '0';
 
                     if (shift_key_pressed = '1') then
                         controller_state <= OPERATION;
@@ -314,7 +314,7 @@ architecture rtl of top_entity is
                 sram_data         <= (others  => '0');
                 rom_write         <= (others  => '0');
                 rom_initialize    <= '0';
-                init_data_addr    <= (others  => '1');
+                init_data_addr    <= (others  => '1');  -- 18 bit
             elsif (rising_edge(I_CLK_50MHZ)) then
                 case controller_state is
                     when INIT =>
@@ -330,10 +330,15 @@ architecture rtl of top_entity is
 
                         rom_write <= rom_write + 1;
                         if (rom_write = "110000110101000000") then
-                            rom_write <= (others => '0');
+                            rom_write <= (others => '0');  -- CDL=> May need to remove later
                             init_data_addr <= init_data_addr + 1;
 
                             if (init_data_addr = "000000000011111111") then
+                                  hex_data_in   <= (others => '0');
+                                  hex_data_addr <= (others => '0');
+                                  sram_data <= (others => '0');
+                                  sram_data_address <= (others => '0');
+
                                   rom_initialize <= '1';
                             end if;
                          end if;
@@ -381,7 +386,7 @@ architecture rtl of top_entity is
                           hex_data_in       <= std_logic_vector(i_keypd_data);
 
                           if (l_key_pressed = '1') then
-                            sram_data_address <= unsigned(i_keypd_addr);
+                            sram_data_address(7 downto 0) <= unsigned(i_keypd_addr(7 downto 0));
                             sram_data         <= std_logic_vector(i_keypd_data);
                           end if;
                         end if;
