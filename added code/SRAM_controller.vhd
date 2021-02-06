@@ -167,19 +167,4 @@ end process CHANGE_STUFF;
   OUT_DATA     <= read_data;
   OUT_DATA_ADR <= IN_DATA_ADDR;
 
-
-
-------------------------------------------------------------------------------
-  -- Process Name     : REFRESH_DIGITS
-  -- Sensitivity List : I_CLK_100MHZ    : 100 MHz global clock
-  --
-  -- Useful Outputs   : segment_select : Gives the segment section that is to be illuminated
-  --                  : digit_select : selects the digit to illuminate
-  --                    (active high enable logic)
-  -- Description      : illuminates the desired segment and digit that is to be displayed
-  ------------------------------------------------------------------------------
-  ------------------------------------------------------------------------------
-
-  -- send signals to output ports
-
 end architecture rtl;
